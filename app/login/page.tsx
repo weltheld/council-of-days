@@ -86,11 +86,11 @@ function LoginInner() {
         ) : (
           <form onSubmit={onSubmit} className="mt-8 space-y-5">
             <TextField
-              label="Your email"
+              label="Email"
               type="email"
               inputMode="email"
               autoComplete="email"
-              placeholder="adventurer@example.com"
+              placeholder="you@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -98,11 +98,11 @@ function LoginInner() {
               error={error ?? undefined}
             />
             <WaxButton type="submit" className="w-full" disabled={sending}>
-              {sending ? "Summoning..." : "Send sign-in link"}
+              {sending ? "Summoning..." : "Send me a magic link"}
             </WaxButton>
             <p className="text-xs text-ink-soft text-center leading-relaxed">
               No passwords. We&apos;ll send a one-time sign-in link &mdash; it
-              expires in fifteen minutes.
+              expires in 15 minutes.
             </p>
           </form>
         )}
