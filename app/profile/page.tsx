@@ -11,12 +11,12 @@ import { WaxButton } from "@/components/council/WaxButton";
 import { useCouncil } from "@/lib/store";
 
 const PORTRAITS = [
-  "/images/avatar-mara.svg",
-  "/images/avatar-torgrim.svg",
-  "/images/avatar-sylvara.svg",
-  "/images/avatar-alaric.svg",
-  "/images/avatar-nyx.svg",
-  "/images/avatar-aldous.svg",
+  "/images/avatar-mara.png",
+  "/images/avatar-torgrim.png",
+  "/images/avatar-sylvara.png",
+  "/images/avatar-alaric.png",
+  "/images/avatar-nyx.png",
+  "/images/avatar-aldous.png",
 ];
 
 export default function ProfilePage() {

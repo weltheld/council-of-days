@@ -25,27 +25,19 @@ html, body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Subtle parchment paper texture using layered radial + diagonal noise */
+/* Real parchment + tavern textures exported from the Pencil design. */
 .bg-parchment-texture {
   background-color: var(--parchment);
-  background-image:
-    radial-gradient(ellipse at top left, rgba(122, 90, 18, 0.08), transparent 60%),
-    radial-gradient(ellipse at bottom right, rgba(107, 34, 48, 0.06), transparent 60%),
-    repeating-linear-gradient(
-      45deg,
-      rgba(122, 90, 18, 0.015) 0px,
-      rgba(122, 90, 18, 0.015) 2px,
-      transparent 2px,
-      transparent 6px
-    );
+  background-image: url("/images/bg-parchment.png");
+  background-size: cover;
+  background-position: center;
 }
 
 .bg-tavern-texture {
   background-color: #1c130c;
-  background-image:
-    radial-gradient(ellipse at center, rgba(182, 138, 46, 0.25), transparent 65%),
-    radial-gradient(circle at 20% 30%, rgba(107, 34, 48, 0.35), transparent 40%),
-    radial-gradient(circle at 80% 70%, rgba(122, 90, 18, 0.35), transparent 45%);
+  background-image: url("/images/bg-tavern.png");
+  background-size: cover;
+  background-position: center;
 }
 
 /* Stamp / wax-seal look for buttons */

@@ -136,6 +136,7 @@ export const useCouncil = create<CouncilState>()(
     }),
     {
       name: "council-of-days-v1",
+      version: 2,
       storage: createJSONStorage(() => localStorage),
       partialize: (s) => ({
         users: s.users,
