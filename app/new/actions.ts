@@ -24,7 +24,9 @@ export async function createCampaignAction(
   } = await supabase.auth.getUser();
   if (!user) redirect("/login?next=/new");
 
-  const { data: campaign, error } = await supabase
+  const admin = getServiceRoleSupabase();
+
+  const { data: campaign, error } = await admin
     .from("campaigns")
     .insert({ name: trimmed, creator_id: user.id })
     .select("id, slug, name")
@@ -34,7 +36,7 @@ export async function createCampaignAction(
     return { ok: false, error: error?.message ?? "Could not create campaign." };
   }
 
-  const { error: memberError } = await supabase
+  const { error: memberError } = await admin
     .from("campaign_members")
     .insert({
       campaign_id: campaign.id,
