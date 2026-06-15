@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" width="96" height="96">
+  <defs>
+    <radialGradient id="m-bg" cx="50%" cy="40%" r="70%">
+      <stop offset="0%" stop-color="#3A2A4F"/>
+      <stop offset="100%" stop-color="#1E1430"/>
+    </radialGradient>
+    <linearGradient id="m-skin" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#E6C9A6"/>
+      <stop offset="100%" stop-color="#B3906C"/>
+    </linearGradient>
+  </defs>
+  <rect width="96" height="96" fill="url(#m-bg)"/>
+  <circle cx="48" cy="44" r="22" fill="url(#m-skin)"/>
+  <path d="M26 38 Q48 6 70 38 Q70 56 60 60 Q60 30 48 26 Q36 30 36 60 Q26 56 26 38 Z" fill="#1B0F2A"/>
+  <path d="M30 60 Q48 90 66 60 Q66 78 48 86 Q30 78 30 60 Z" fill="#6B2230"/>
+  <path d="M30 60 Q48 90 66 60 Q66 78 48 86 Q30 78 30 60 Z" fill="none" stroke="#B68A2E" stroke-width="1.2"/>
+  <circle cx="40" cy="46" r="1.5" fill="#1B0F2A"/>
+  <circle cx="56" cy="46" r="1.5" fill="#1B0F2A"/>
+  <path d="M42 56 Q48 60 54 56" fill="none" stroke="#5A3528" stroke-width="1.2" stroke-linecap="round"/>
+  <path d="M48 12 L51 22 L60 24 L52 30 L54 40 L48 35 L42 40 L44 30 L36 24 L45 22 Z" fill="#B68A2E" opacity="0.85"/>
+</svg>
