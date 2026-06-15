@@ -63,7 +63,9 @@ export const SEED_GROUP: Group = {
   phase: "live",
   // Default to weekdays only — the design shows weekends as non-viable.
   viableWeekdays: [1, 2, 3, 4, 5] as Weekday[],
-  background: "tavern",
+  // New Pencil design uses parchment as the default scene for the
+  // group view (dark ink reads against it). DM can switch in Poll Settings.
+  background: "parchment",
   createdAt: "2026-06-01T00:00:00.000Z",
 };
 

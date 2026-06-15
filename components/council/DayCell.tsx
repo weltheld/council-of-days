@@ -47,14 +47,14 @@ export function DayCell({
   const bgTint = !day.inCurrentMonth
     ? "bg-transparent"
     : !isViableWeekday
-      ? "bg-[#E7DECB]/60"
+      ? "bg-[#E7DECB]"
       : myVote === "yes"
-        ? "bg-vote-yes/15"
+        ? "bg-vote-yes/20"
         : myVote === "no"
-          ? "bg-vote-no/15"
+          ? "bg-vote-no/20"
           : myVote === "maybe"
-            ? "bg-vote-maybe/12"
-            : "bg-surface/70";
+            ? "bg-vote-maybe/15"
+            : "bg-surface";
 
   return (
     <button

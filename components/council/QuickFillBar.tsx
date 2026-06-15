@@ -44,7 +44,7 @@ export function QuickFillBar({ viableWeekdays, onApply, className }: Props) {
   return (
     <div
       className={cn(
-        "flex flex-wrap items-center gap-3 rounded-md border border-hairline/70 bg-surface/70 px-3 py-2.5",
+        "flex flex-wrap items-center gap-3 rounded-md border border-hairline bg-surface px-3 py-2.5 shadow-sm",
         className,
       )}
     >

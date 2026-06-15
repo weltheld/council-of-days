@@ -108,7 +108,7 @@ export function CalendarPanel({
         <button
           aria-label="Previous month"
           onClick={() => go(-1)}
-          className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-hairline bg-surface/70 hover:bg-parchment"
+          className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-hairline bg-surface shadow-sm hover:bg-parchment"
         >
           <ChevronLeft className="h-4 w-4" />
         </button>
@@ -118,7 +118,7 @@ export function CalendarPanel({
         <button
           aria-label="Next month"
           onClick={() => go(1)}
-          className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-hairline bg-surface/70 hover:bg-parchment"
+          className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-hairline bg-surface shadow-sm hover:bg-parchment"
         >
           <ChevronRight className="h-4 w-4" />
         </button>

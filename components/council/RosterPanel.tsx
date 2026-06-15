@@ -79,7 +79,7 @@ export function RosterPanel({
             <li
               key={m.userId}
               className={cn(
-                "flex items-center gap-3 rounded-md border border-hairline/50 bg-surface/60 px-2.5 py-2",
+                "flex items-center gap-3 rounded-md border border-hairline/60 bg-surface px-2.5 py-2 shadow-sm",
               )}
             >
               <Avatar src={m.user.avatarUrl} alt={m.user.characterName} size={36} />

@@ -63,7 +63,7 @@ export function TopBar({
             type="button"
             onClick={onOpenSettings}
             className={cn(
-              "inline-flex h-9 w-9 items-center justify-center rounded-full border border-hairline bg-surface/70 text-ink-soft hover:bg-parchment hover:text-ink",
+              "inline-flex h-9 w-9 items-center justify-center rounded-full border border-hairline bg-surface text-ink-soft shadow-sm hover:bg-parchment hover:text-ink",
             )}
             aria-label="Poll settings"
             title="Poll settings"
@@ -88,7 +88,7 @@ function SignedInAccount({ user, className }: { user: User; className?: string }
   return (
     <div
       className={cn(
-        "items-center gap-2 rounded-full border border-hairline bg-surface/70 py-1 pl-1 pr-3",
+        "items-center gap-2 rounded-full border border-hairline bg-surface py-1 pl-1 pr-3 shadow-sm",
         className,
       )}
     >

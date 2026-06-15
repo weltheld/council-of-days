@@ -102,8 +102,13 @@ export function GroupView() {
 
   return (
     <div className={cn("relative flex min-h-screen flex-col", `bg-scene-${group.background}`)}>
-      {/* Parchment-tinted overlay softens the scene so dark ink text reads. */}
-      <div className="pointer-events-none absolute inset-0 bg-parchment/85" aria-hidden />
+      {/* Parchment "page" overlay — keeps dark ink text readable no matter
+          which scene the DM picks. The chosen scene tints through subtly
+          and bleeds in at the very edges of the max-w container. */}
+      <div
+        className="bg-parchment-texture pointer-events-none absolute inset-0 opacity-[0.94]"
+        aria-hidden
+      />
       <div className="relative flex min-h-screen flex-col">
         <TopBar
           groupName={group.name}
