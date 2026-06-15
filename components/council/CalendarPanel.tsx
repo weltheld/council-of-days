@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight, Crown } from "lucide-react";
 import {
   buildMonthGrid,
@@ -10,36 +9,43 @@ import {
   nextMonth,
   prevMonth,
 } from "@/lib/calendar";
-import type { Vote, VoteValue } from "@/lib/types";
-import type { User, Member } from "@/lib/types";
+import type { Vote, VoteValue, Weekday } from "@/lib/types";
 import { DayCell } from "./DayCell";
-import { initialFor } from "@/lib/store";
+import { QuickFillBar } from "./QuickFillBar";
 
 const WEEKDAYS = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 
 type Props = {
-  slug: string;
   dmId: string;
   myUserId: string | null;
-  members: (Member & { user: User })[];
   votes: Vote[];
-  focusedDate: string | null;
-  onVote: (date: string, value: VoteValue | null) => void;
+  viableWeekdays: Weekday[];
+  onCycleDay: (date: string, currentValue: VoteValue | undefined) => void;
+  onBulkFill: (weekdays: Weekday[], value: VoteValue, isoDates: string[]) => void;
+  /** Optional callback so the parent can also know the best day (for the roster). */
+  onBestDayChange?: (iso: string | null) => void;
+  onMonthChange?: (year: number, monthIndex: number) => void;
+  initialMonth?: { year: number; monthIndex: number };
 };
 
 export function CalendarPanel({
-  slug,
   dmId,
   myUserId,
-  members,
   votes,
-  focusedDate,
-  onVote,
+  viableWeekdays,
+  onCycleDay,
+  onBulkFill,
+  onBestDayChange,
+  onMonthChange,
+  initialMonth,
 }: Props) {
-  const initial = defaultMonth();
-  const [{ year, monthIndex }, setMonth] = useState(initial);
+  const start = initialMonth ?? defaultMonth();
+  const [{ year, monthIndex }, setMonth] = useState(start);
 
-  const days = useMemo(() => buildMonthGrid(year, monthIndex), [year, monthIndex]);
+  const days = useMemo(
+    () => buildMonthGrid(year, monthIndex),
+    [year, monthIndex],
+  );
   const monthVotes = useMemo(() => {
     const byDate: Record<string, Vote[]> = {};
     for (const d of days) byDate[d.iso] = [];
@@ -47,17 +53,12 @@ export function CalendarPanel({
     return byDate;
   }, [days, votes]);
 
-  const initialsByUser = useMemo(() => {
-    const out: Record<string, string> = {};
-    for (const m of members) out[m.userId] = initialFor(m.user);
-    return out;
-  }, [members]);
+  const viableSet = useMemo(() => new Set(viableWeekdays), [viableWeekdays]);
 
-  // Best day = most "yes" votes among days where the DM has voted yes.
   const bestDayIso = useMemo(() => {
     let best: { iso: string; yes: number } | null = null;
     for (const d of days) {
-      if (!d.inCurrentMonth) continue;
+      if (!d.inCurrentMonth || !viableSet.has(d.weekday as Weekday)) continue;
       const dayVotes = monthVotes[d.iso] ?? [];
       const dmYes = dayVotes.some((v) => v.userId === dmId && v.value === "yes");
       if (!dmYes) continue;
@@ -65,24 +66,48 @@ export function CalendarPanel({
       if (!best || yes > best.yes) best = { iso: d.iso, yes };
     }
     return best?.iso ?? null;
-  }, [days, monthVotes, dmId]);
+  }, [days, monthVotes, dmId, viableSet]);
+
+  // Surface best-day to parent (for roster panel + footer).
+  const lastReportedRef = useMemo(() => ({ value: null as string | null }), []);
+  if (onBestDayChange && lastReportedRef.value !== bestDayIso) {
+    lastReportedRef.value = bestDayIso;
+    queueMicrotask(() => onBestDayChange(bestDayIso));
+  }
 
   const dmFreeCount = useMemo(
     () =>
       days.filter(
         (d) =>
           d.inCurrentMonth &&
-          (monthVotes[d.iso] ?? []).some((v) => v.userId === dmId && v.value === "yes"),
+          viableSet.has(d.weekday as Weekday) &&
+          (monthVotes[d.iso] ?? []).some(
+            (v) => v.userId === dmId && v.value === "yes",
+          ),
       ).length,
-    [days, monthVotes, dmId],
+    [days, monthVotes, dmId, viableSet],
   );
 
+  function go(delta: -1 | 1) {
+    const m = delta === -1 ? prevMonth(year, monthIndex) : nextMonth(year, monthIndex);
+    setMonth(m);
+    onMonthChange?.(m.year, m.monthIndex);
+  }
+
+  function bulkApply(weekdays: Weekday[], value: VoteValue) {
+    const set = new Set(weekdays);
+    const isoDates = days
+      .filter((d) => d.inCurrentMonth && set.has(d.weekday as Weekday))
+      .map((d) => d.iso);
+    onBulkFill(weekdays, value, isoDates);
+  }
+
   return (
-    <section className="flex h-full flex-col p-4 sm:p-5">
+    <section className="flex h-full flex-col gap-3 p-4 sm:p-5">
       <div className="flex items-center gap-2 sm:gap-4">
         <button
           aria-label="Previous month"
-          onClick={() => setMonth(prevMonth(year, monthIndex))}
+          onClick={() => go(-1)}
           className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-hairline bg-surface/70 hover:bg-parchment"
         >
           <ChevronLeft className="h-4 w-4" />
@@ -92,7 +117,7 @@ export function CalendarPanel({
         </h2>
         <button
           aria-label="Next month"
-          onClick={() => setMonth(nextMonth(year, monthIndex))}
+          onClick={() => go(1)}
           className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-hairline bg-surface/70 hover:bg-parchment"
         >
           <ChevronRight className="h-4 w-4" />
@@ -105,17 +130,19 @@ export function CalendarPanel({
           </span>
         </div>
       </div>
-      <p className="mt-1 text-xs text-ink-soft">
-        Tap <span className="text-vote-yes">✓</span> <span className="text-vote-maybe">~</span> <span className="text-vote-no">✗</span> on a day to cast your vote.
-      </p>
 
-      <div className="mt-3 grid grid-cols-7 gap-1 text-center small-caps">
+      <QuickFillBar
+        viableWeekdays={viableWeekdays}
+        onApply={bulkApply}
+      />
+
+      <div className="grid grid-cols-7 gap-1 text-center small-caps">
         {WEEKDAYS.map((w) => (
           <span key={w}>{w}</span>
         ))}
       </div>
 
-      <div className="mt-1 grid flex-1 grid-cols-7 grid-rows-6 gap-1">
+      <div className="grid flex-1 grid-cols-7 auto-rows-fr gap-1">
         {days.map((d) => (
           <DayCell
             key={d.iso}
@@ -124,10 +151,13 @@ export function CalendarPanel({
             myUserId={myUserId}
             dmId={dmId}
             isBestDay={bestDayIso === d.iso}
-            focused={focusedDate === d.iso}
-            initialsByUser={initialsByUser}
-            slug={slug}
-            onVote={onVote}
+            isViableWeekday={viableSet.has(d.weekday as Weekday)}
+            onCycle={(iso) => {
+              const current = (monthVotes[iso] ?? []).find(
+                (v) => v.userId === myUserId,
+              )?.value as VoteValue | undefined;
+              onCycleDay(iso, current);
+            }}
           />
         ))}
       </div>

@@ -1,0 +1,37 @@
+import { longDateLabel, weekdayLabel } from "@/lib/calendar";
+
+type Props = {
+  bestDayIso: string | null;
+  dmName: string;
+  yesCountExcludingDm: number;
+  participantCountExcludingDm: number;
+};
+
+export function BestDaySummary({
+  bestDayIso,
+  dmName,
+  yesCountExcludingDm,
+  participantCountExcludingDm,
+}: Props) {
+  if (!bestDayIso) {
+    return (
+      <div className="rounded-card border border-hairline/70 bg-surface/70 p-3 text-center text-xs text-ink-soft">
+        No leading day yet — the council awaits more voices.
+      </div>
+    );
+  }
+  const weekday = weekdayLabel(bestDayIso);
+  const full = longDateLabel(bestDayIso);
+  return (
+    <div className="rounded-card border border-dm-gold/40 bg-dm-gold/10 p-3">
+      <p className="text-[10px] font-display tracking-wider uppercase text-dm-gold">
+        Leading day
+      </p>
+      <p className="mt-1 text-sm text-ink">
+        <span className="font-display">{weekday}</span>,{" "}
+        {full.replace(/, \d{4}/, "")} &mdash; {dmName} + {yesCountExcludingDm} of{" "}
+        {participantCountExcludingDm} can make it
+      </p>
+    </div>
+  );
+}

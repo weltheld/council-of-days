@@ -10,6 +10,7 @@ export type CalendarDay = {
   date: Date;
   iso: string;
   dayOfMonth: number;
+  weekday: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   inCurrentMonth: boolean;
   isToday: boolean;
 };
@@ -36,6 +37,7 @@ export function buildMonthGrid(year: number, monthIndex: number): CalendarDay[] 
       date: cursor,
       iso: isoDate(cursor),
       dayOfMonth: cursor.getDate(),
+      weekday: cursor.getDay() as 0 | 1 | 2 | 3 | 4 | 5 | 6,
       inCurrentMonth:
         cursor.getMonth() === monthIndex && cursor.getFullYear() === year,
       isToday: isoDate(cursor) === todayIso,

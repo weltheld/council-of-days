@@ -40,6 +40,52 @@ html, body {
   background-position: center;
 }
 
+/* Per-group background scenes (DM picks one in Poll Settings).
+   Wine + Forest don't have PNGs yet — synthesized from gradients so the
+   picker works today; swap to images later by changing background-image. */
+.bg-scene-tavern {
+  background-color: #1c130c;
+  background-image: url("/images/bg-tavern.png");
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+}
+.bg-scene-parchment {
+  background-color: var(--parchment);
+  background-image: url("/images/bg-parchment.png");
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+}
+.bg-scene-wine {
+  background-color: #2e0a14;
+  background-image:
+    radial-gradient(ellipse at top, rgba(182, 138, 46, 0.18), transparent 60%),
+    radial-gradient(ellipse at bottom, rgba(107, 34, 48, 0.55), transparent 60%),
+    repeating-linear-gradient(
+      135deg,
+      rgba(243, 228, 195, 0.02) 0px,
+      rgba(243, 228, 195, 0.02) 2px,
+      transparent 2px,
+      transparent 8px
+    );
+  background-attachment: fixed;
+}
+.bg-scene-forest {
+  background-color: #0f1f17;
+  background-image:
+    radial-gradient(ellipse at top left, rgba(122, 90, 18, 0.22), transparent 55%),
+    radial-gradient(ellipse at 80% 80%, rgba(62, 92, 68, 0.6), transparent 60%),
+    repeating-linear-gradient(
+      35deg,
+      rgba(217, 180, 90, 0.025) 0px,
+      rgba(217, 180, 90, 0.025) 2px,
+      transparent 2px,
+      transparent 7px
+    );
+  background-attachment: fixed;
+}
+
 /* Stamp / wax-seal look for buttons */
 .btn-wax {
   background: linear-gradient(180deg, var(--wine), #4a1620);

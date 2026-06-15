@@ -2,9 +2,9 @@
 
 import { Crown } from "lucide-react";
 import { Avatar } from "./Avatar";
-import { Legend } from "./Legend";
 import { VoteChip } from "./VoteChip";
 import type { Member, User, Vote, VoteValue } from "@/lib/types";
+import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
 type MemberWithUser = Member & { user: User };
@@ -12,25 +12,39 @@ type MemberWithUser = Member & { user: User };
 type Props = {
   members: MemberWithUser[];
   dmId: string;
-  focusedDate: string | null;
-  votesForFocusedDay: Vote[];
+  myUserId: string | null;
+  /** The leading day (best day) — drives the per-member chip column. */
+  leadingDayIso: string | null;
+  /** All votes for the campaign (we filter for the leading day inside). */
+  votes: Vote[];
 };
 
-function dmNote(votes: Vote[], dmId: string) {
-  const dmVote = votes.find((v) => v.userId === dmId);
-  if (!dmVote) return "Her days rule the calendar";
-  return dmVote.value === "yes"
-    ? "She is in — the table can convene."
-    : dmVote.value === "maybe"
-      ? "She may join — keep the seat warm."
-      : "She is out — choose another day.";
+function isoToWeekdayLabel(iso: string) {
+  const [y, m, d] = iso.split("-").map(Number);
+  return format(new Date(y, m - 1, d), "EEE, MMM d").toUpperCase();
 }
 
-export function RosterPanel({ members, dmId, focusedDate, votesForFocusedDay }: Props) {
+function dmNote(dmVoteOnLeading: VoteValue | undefined) {
+  if (dmVoteOnLeading === "yes") return "She is in — the table can convene.";
+  if (dmVoteOnLeading === "maybe") return "She may join — keep the seat warm.";
+  if (dmVoteOnLeading === "no") return "She is out — choose another day.";
+  return "Her days rule the calendar";
+}
+
+export function RosterPanel({
+  members,
+  dmId,
+  myUserId,
+  leadingDayIso,
+  votes,
+}: Props) {
   const dm = members.find((m) => m.userId === dmId);
   const party = members.filter((m) => m.userId !== dmId);
+  const leadingVotes = leadingDayIso
+    ? votes.filter((v) => v.date === leadingDayIso)
+    : [];
   const voteByUser: Record<string, VoteValue | undefined> = Object.fromEntries(
-    votesForFocusedDay.map((v) => [v.userId, v.value]),
+    leadingVotes.map((v) => [v.userId, v.value]),
   );
 
   return (
@@ -46,21 +60,21 @@ export function RosterPanel({ members, dmId, focusedDate, votesForFocusedDay }: 
               <Crown className="h-3.5 w-3.5" /> Dungeon Master
             </p>
             <p className="mt-1.5 text-xs italic text-ink-soft leading-snug">
-              {dmNote(votesForFocusedDay, dmId)}
+              {dmNote(voteByUser[dmId])}
             </p>
           </div>
         </div>
       )}
 
-      <div className="flex items-baseline justify-between">
-        <p className="small-caps">
-          The Party {focusedDate ? `· Votes for ${focusedDate}` : ""}
-        </p>
-      </div>
+      <p className="small-caps">
+        The Party{" "}
+        {leadingDayIso ? `· Votes for ${isoToWeekdayLabel(leadingDayIso)}` : ""}
+      </p>
 
       <ul className="space-y-1.5">
         {party.map((m) => {
           const v = voteByUser[m.userId];
+          const isMe = myUserId === m.userId;
           return (
             <li
               key={m.userId}
@@ -70,18 +84,19 @@ export function RosterPanel({ members, dmId, focusedDate, votesForFocusedDay }: 
             >
               <Avatar src={m.user.avatarUrl} alt={m.user.characterName} size={36} />
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm text-ink leading-tight">{m.user.characterName}</p>
-                <p className="truncate text-[11px] text-ink-soft">{m.user.displayName}</p>
+                <p className="truncate text-sm text-ink leading-tight">
+                  {m.user.characterName}
+                </p>
+                <p className="truncate text-[11px] text-ink-soft">
+                  {m.user.displayName}
+                  {isMe && " — you"}
+                </p>
               </div>
               <VoteChip value={v ?? null} />
             </li>
           );
         })}
       </ul>
-
-      <div className="pt-2">
-        <Legend />
-      </div>
     </aside>
   );
 }

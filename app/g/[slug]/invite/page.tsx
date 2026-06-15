@@ -16,8 +16,8 @@ export default function InvitePage() {
   const groups = useCouncil((s) => s.groups);
   const allMembers = useCouncil((s) => s.members);
   const users = useCouncil((s) => s.users);
-  const allInvites = useCouncil((s) => s.invites);
-  const invitePlayer = useCouncil((s) => s.invitePlayer);
+  const allInvites = useCouncil((s) => s.invitations);
+  const invitePlayer = useCouncil((s) => s.inviteByEmail);
 
   const group = useMemo(
     () => groups.find((g) => g.slug === params.slug),
@@ -96,7 +96,7 @@ export default function InvitePage() {
           <p className="small-caps">The party so far</p>
           <ul className="space-y-2">
             {members
-              .filter((m) => m.role === "player")
+              .filter((m) => m.role === "participant")
               .map((m) => (
                 <li key={m.userId} className="flex items-center justify-between rounded-md border border-hairline/60 bg-surface/60 px-3 py-2">
                   <div className="flex items-center gap-3">
@@ -106,15 +106,26 @@ export default function InvitePage() {
                   <span className="text-xs font-display tracking-wider uppercase text-vote-yes">Joined</span>
                 </li>
               ))}
-            {invites.map((i) => (
-              <li key={i.email} className="flex items-center justify-between rounded-md border border-hairline/60 bg-surface/40 px-3 py-2">
-                <div className="flex items-center gap-3">
-                  <Avatar alt={i.email} size={32} />
-                  <span className="text-ink-soft">{i.email}</span>
-                </div>
-                <span className="text-xs font-display tracking-wider uppercase text-gold">Pending</span>
-              </li>
-            ))}
+            {invites.map((i) => {
+              const label =
+                i.email ??
+                users.find((u) => u.id === i.userId)?.displayName ??
+                "Adventurer";
+              return (
+                <li
+                  key={`${i.email ?? i.userId}`}
+                  className="flex items-center justify-between rounded-md border border-hairline/60 bg-surface/40 px-3 py-2"
+                >
+                  <div className="flex items-center gap-3">
+                    <Avatar alt={label} size={32} />
+                    <span className="text-ink-soft">{label}</span>
+                  </div>
+                  <span className="text-xs font-display tracking-wider uppercase text-gold">
+                    Pending
+                  </span>
+                </li>
+              );
+            })}
           </ul>
         </section>
 
