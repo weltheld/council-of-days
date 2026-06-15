@@ -29,6 +29,7 @@ const config: Config = {
       boxShadow: {
         parchment: "0 8px 32px -8px rgba(43, 33, 24, 0.18), 0 2px 4px rgba(43, 33, 24, 0.06)",
         crest: "0 4px 12px rgba(43, 33, 24, 0.25)",
+        wine: "0 5px 14px rgba(107, 34, 48, 0.25)",
       },
       borderRadius: {
         card: "14px",

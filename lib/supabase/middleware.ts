@@ -3,7 +3,7 @@ import { createServerClient } from "@supabase/ssr";
 import type { Database } from "./database.types";
 import { publicSupabaseAnonKey, publicSupabaseUrl } from "./env";
 
-const PROTECTED_PATHS = ["/profile", "/new", "/g/"];
+const PROTECTED_PATHS = ["/profile", "/new", "/g/", "/home"];
 
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -46,7 +46,7 @@ export async function updateSession(request: NextRequest) {
 
   if (user && (pathname === "/" || pathname === "/login")) {
     const redirectUrl = request.nextUrl.clone();
-    redirectUrl.pathname = "/profile";
+    redirectUrl.pathname = "/home";
     return NextResponse.redirect(redirectUrl);
   }
 

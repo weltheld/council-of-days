@@ -70,5 +70,5 @@ export async function updateProfileAction(
   }
 
   revalidatePath("/profile");
-  return { ok: true, nextHref: slug ? `/g/${slug}` : "/new" };
+  return { ok: true, nextHref: "/home" };
 }
