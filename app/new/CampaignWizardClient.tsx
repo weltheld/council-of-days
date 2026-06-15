@@ -13,7 +13,6 @@ import {
 } from "lucide-react";
 import { Avatar } from "@/components/council/Avatar";
 import { Crest } from "@/components/council/Crest";
-import { StageBackdrop } from "@/components/council/StageBackdrop";
 import { TextField } from "@/components/council/TextField";
 import { WaxButton } from "@/components/council/WaxButton";
 import { cn } from "@/lib/utils";
@@ -116,8 +115,16 @@ export function CampaignWizardClient({
   }
 
   return (
-    <StageBackdrop>
-      <div className="mx-auto flex w-full max-w-[1100px] flex-col gap-6 py-6 sm:py-10">
+    <div className="relative min-h-screen bg-parchment">
+      <div
+        className="pointer-events-none fixed inset-0 opacity-[0.15]"
+        style={{
+          backgroundImage: "url(/images/bg-parchment.png)",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+      />
+      <div className="relative z-10 mx-auto flex w-full max-w-[1100px] flex-col gap-6 px-4 py-6 sm:px-8 sm:py-10">
         <header className="flex flex-col items-center text-center gap-2">
           <Crest size={48} />
           <p className="small-caps">
@@ -136,7 +143,7 @@ export function CampaignWizardClient({
 
         <div className="grid gap-6 lg:grid-cols-2">
           {/* Left: Campaign Form */}
-          <section className="rounded-card border border-hairline/70 bg-surface/95 p-6 sm:p-8 shadow-card">
+          <section className="rounded-card border border-hairline bg-surface p-6 sm:p-8 shadow-parchment">
             <Pill icon={ScrollText} label="Step 1 · Campaign" />
 
             <h2 className="mt-4 font-display text-2xl text-ink">
@@ -203,7 +210,7 @@ export function CampaignWizardClient({
           {/* Right: Invite Panel */}
           <section
             className={cn(
-              "rounded-card border border-hairline/70 bg-surface/95 p-6 sm:p-8 shadow-card transition",
+              "rounded-card border border-hairline bg-surface p-6 sm:p-8 shadow-parchment transition",
               !isCreated && "opacity-90",
             )}
           >
@@ -346,7 +353,7 @@ export function CampaignWizardClient({
           </section>
         </div>
       </div>
-    </StageBackdrop>
+    </div>
   );
 }
 
