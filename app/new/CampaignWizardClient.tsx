@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   Check,
+  Copy,
   Link as LinkIcon,
   Lock,
   Plus,
@@ -46,6 +47,7 @@ export function CampaignWizardClient({
   const [invitedUserIds, setInvitedUserIds] = useState<Set<string>>(new Set());
   const [emailInvites, setEmailInvites] = useState<string[]>([]);
   const [emailDraft, setEmailDraft] = useState("");
+  const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -229,29 +231,42 @@ export function CampaignWizardClient({
               <div className="flex items-center gap-2">
                 <div
                   className={cn(
-                    "flex flex-1 items-center gap-2 rounded-md border px-3 py-2.5 font-mono text-sm",
+                    "flex min-w-0 flex-1 items-center gap-2 rounded-md border px-3 py-2.5 font-mono text-sm",
                     isCreated
                       ? "border-hairline bg-surface/80 text-wine"
                       : "border-hairline bg-parchment/40 text-ink-soft/70",
                   )}
                 >
                   <LinkIcon className="h-4 w-4 flex-none text-dm-gold" />
-                  <span className="truncate">{signUpLink}</span>
+                  <span className="min-w-0 flex-1 truncate">{signUpLink}</span>
                 </div>
                 <button
                   type="button"
                   disabled={!isCreated}
-                  onClick={() =>
-                    isCreated && navigator.clipboard?.writeText(signUpLink)
-                  }
+                  onClick={() => {
+                    if (!isCreated) return;
+                    navigator.clipboard?.writeText(signUpLink);
+                    setCopied(true);
+                    window.setTimeout(() => setCopied(false), 2000);
+                  }}
                   className={cn(
-                    "h-10 rounded-md px-4 font-display text-xs tracking-wider uppercase",
+                    "inline-flex h-10 flex-none items-center gap-1.5 rounded-md px-4 font-display text-xs tracking-wider uppercase",
                     isCreated
                       ? "bg-wine text-parchment hover:bg-wine/90"
                       : "bg-parchment/60 text-ink-soft/60 cursor-not-allowed",
                   )}
                 >
-                  Copy
+                  {copied ? (
+                    <>
+                      <Check className="h-3.5 w-3.5" />
+                      Copied
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="h-3.5 w-3.5" />
+                      Copy
+                    </>
+                  )}
                 </button>
               </div>
             </div>
