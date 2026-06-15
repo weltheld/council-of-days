@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { Settings2 } from "lucide-react";
+import { useState, useTransition } from "react";
+import { LogOut, Settings2 } from "lucide-react";
 import { Crest } from "./Crest";
 import { Avatar } from "./Avatar";
 import type { User } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { signOutAction } from "@/app/auth/actions";
 
 type Props = {
   groupName: string;
@@ -85,17 +87,62 @@ function Crown(props: React.SVGProps<SVGSVGElement>) {
 }
 
 function SignedInAccount({ user, className }: { user: User; className?: string }) {
+  const [open, setOpen] = useState(false);
+  const [pending, startTransition] = useTransition();
+
   return (
-    <div
-      className={cn(
-        "items-center gap-2 rounded-full border border-hairline bg-surface py-1 pl-1 pr-3 shadow-sm",
-        className,
+    <div className={cn("relative", className)}>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="inline-flex items-center gap-2 rounded-full border border-hairline bg-surface py-1 pl-1 pr-3 shadow-sm hover:bg-parchment"
+        aria-haspopup="menu"
+        aria-expanded={open}
+      >
+        <Avatar
+          src={user.avatarUrl}
+          alt={user.displayName || user.email}
+          size={28}
+        />
+        <span className="max-w-[180px] truncate text-xs text-ink-soft">
+          {user.email}
+        </span>
+      </button>
+
+      {open && (
+        <>
+          <button
+            aria-hidden
+            className="fixed inset-0 z-30"
+            onClick={() => setOpen(false)}
+          />
+          <div
+            role="menu"
+            className="absolute right-0 top-[calc(100%+8px)] z-40 w-56 overflow-hidden rounded-md border border-hairline bg-surface shadow-parchment"
+          >
+            <div className="border-b border-hairline/70 px-3 py-2">
+              <p className="font-display text-sm text-ink truncate">
+                {user.displayName || user.characterName || user.email}
+              </p>
+              <p className="text-[11px] text-ink-soft truncate">{user.email}</p>
+            </div>
+            <button
+              type="button"
+              disabled={pending}
+              onClick={() =>
+                startTransition(async () => {
+                  await signOutAction();
+                })
+              }
+              className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-ink hover:bg-parchment disabled:opacity-50"
+              role="menuitem"
+            >
+              <LogOut className="h-4 w-4 text-ink-soft" />
+              {pending ? "Signing out..." : "Sign out"}
+            </button>
+          </div>
+        </>
       )}
-    >
-      <Avatar src={user.avatarUrl} alt={user.displayName || user.email} size={28} />
-      <span className="max-w-[180px] truncate text-xs text-ink-soft">
-        {user.email}
-      </span>
     </div>
   );
 }
