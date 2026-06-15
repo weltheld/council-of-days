@@ -43,17 +43,19 @@ export function DayCell({
 
   const interactive = day.inCurrentMonth && isViableWeekday && !!myUserId;
 
-  // Tinted background derived from user's own vote, mirroring the .pen design.
+  // Tinted background derived from user's own vote. Solid (opaque) beige
+  // blends so the tile keeps its parchment color and just gains a subtle
+  // green/yellow/red tint — never going transparent.
   const bgTint = !day.inCurrentMonth
     ? "bg-transparent"
     : !isViableWeekday
       ? "bg-[#E7DECB]"
       : myVote === "yes"
-        ? "bg-vote-yes/20"
+        ? "bg-[#D5D9C4]"
         : myVote === "no"
-          ? "bg-vote-no/20"
+          ? "bg-[#E8D2C5]"
           : myVote === "maybe"
-            ? "bg-vote-maybe/15"
+            ? "bg-[#EDE0BE]"
             : "bg-surface";
 
   return (

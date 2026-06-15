@@ -165,16 +165,7 @@ export function GroupViewClient(props: Props) {
   );
 
   return (
-    <div
-      className={cn(
-        "relative flex min-h-screen flex-col",
-        `bg-scene-${group.background}`,
-      )}
-    >
-      <div
-        className="bg-parchment-texture pointer-events-none absolute inset-0 opacity-[0.94]"
-        aria-hidden
-      />
+    <div className="relative flex min-h-screen flex-col bg-parchment">
       <div className="relative flex min-h-screen flex-col">
         <TopBar
           groupName={group.name}
@@ -298,7 +289,7 @@ function MobileSettingsSheet({
         onClick={onClose}
         className="absolute inset-0 bg-black/30 backdrop-blur-[1px]"
       />
-      <div className="absolute inset-x-0 bottom-0 max-h-[85vh] overflow-y-auto rounded-t-3xl border-t border-hairline bg-parchment-texture shadow-2xl">
+      <div className="absolute inset-x-0 bottom-0 max-h-[85vh] overflow-y-auto rounded-t-3xl border-t border-hairline bg-parchment shadow-2xl">
         <div className="flex justify-center pt-2">
           <span className="h-1.5 w-10 rounded-full bg-ink-soft/30" />
         </div>

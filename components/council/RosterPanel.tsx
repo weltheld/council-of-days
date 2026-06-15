@@ -24,13 +24,6 @@ function isoToWeekdayLabel(iso: string) {
   return format(new Date(y, m - 1, d), "EEE, MMM d").toUpperCase();
 }
 
-function dmNote(dmVoteOnLeading: VoteValue | undefined) {
-  if (dmVoteOnLeading === "yes") return "She is in — the table can convene.";
-  if (dmVoteOnLeading === "maybe") return "She may join — keep the seat warm.";
-  if (dmVoteOnLeading === "no") return "She is out — choose another day.";
-  return "Her days rule the calendar";
-}
-
 export function RosterPanel({
   members,
   dmId,
@@ -58,9 +51,6 @@ export function RosterPanel({
             </p>
             <p className="mt-0.5 flex items-center gap-1 text-[11px] font-display tracking-wider uppercase text-dm-gold">
               <Crown className="h-3.5 w-3.5" /> Dungeon Master
-            </p>
-            <p className="mt-1.5 text-xs italic text-ink-soft leading-snug">
-              {dmNote(voteByUser[dmId])}
             </p>
           </div>
         </div>
