@@ -2,9 +2,7 @@
 
 import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { ParchmentCard } from "@/components/council/ParchmentCard";
 import { Crest } from "@/components/council/Crest";
-import { StageBackdrop } from "@/components/council/StageBackdrop";
 import { TextField } from "@/components/council/TextField";
 import { WaxButton } from "@/components/council/WaxButton";
 import { getBrowserSupabase } from "@/lib/supabase/client";
@@ -69,14 +67,12 @@ function LoginInner() {
   }
 
   return (
-    <StageBackdrop>
-      <ParchmentCard className="w-full max-w-[460px] p-8 sm:p-10">
-        <header className="flex flex-col items-center text-center gap-4">
+    <div className="flex min-h-screen w-full items-center justify-center bg-scene-parchment px-4 py-10 sm:px-8">
+      <div className="w-full max-w-[460px] rounded-xl border border-hairline bg-surface p-8 shadow-parchment sm:p-10">
+        <header className="flex flex-col items-center text-center gap-3">
           <Crest size={72} />
-          <h1 className="font-display text-3xl sm:text-4xl text-ink tracking-wide">
-            Council of Days
-          </h1>
-          <p className="text-ink-soft italic max-w-[34ch]">
+          <h1 className="font-display text-3xl text-ink">Council of Days</h1>
+          <p className="font-body text-ink-soft italic max-w-[34ch]">
             Gather your party. Choose your day.
           </p>
         </header>
@@ -84,7 +80,7 @@ function LoginInner() {
         {sent ? (
           <SentState email={email} onResend={() => setSent(false)} />
         ) : (
-          <form onSubmit={onSubmit} className="mt-8 space-y-5">
+          <form onSubmit={onSubmit} className="mt-7 space-y-5">
             <TextField
               label="Email"
               type="email"
@@ -106,8 +102,8 @@ function LoginInner() {
             </p>
           </form>
         )}
-      </ParchmentCard>
-    </StageBackdrop>
+      </div>
+    </div>
   );
 }
 
