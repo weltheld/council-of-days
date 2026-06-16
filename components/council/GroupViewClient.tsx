@@ -20,6 +20,7 @@ import type {
 import { cn } from "@/lib/utils";
 import { getBrowserSupabase } from "@/lib/supabase/client";
 import { uploadBannerAction } from "@/app/g/[slug]/bannerActions";
+import { setMemberDmAction } from "@/app/g/[slug]/roleActions";
 
 type MemberWithUser = Member & { user: User };
 
@@ -58,16 +59,14 @@ export function GroupViewClient(props: Props) {
     }
   }, [isCreator, searchParams]);
 
-  const dm = props.members.find((m) => m.userId === group.dmId);
+  const [members, setMembers] = useState(props.members);
+  useEffect(() => setMembers(props.members), [props.members]);
+
+  const dmUserIds = members.filter((m) => m.isDm).map((m) => m.userId);
   const leadingVotes = bestDayIso
     ? votes.filter((v) => v.date === bestDayIso)
     : [];
-  const participantCount = props.members.filter(
-    (m) => m.userId !== group.dmId,
-  ).length;
-  const leadingYesExclDm = leadingVotes.filter(
-    (v) => v.value === "yes" && v.userId !== group.dmId,
-  ).length;
+  const leadingYesCount = leadingVotes.filter((v) => v.value === "yes").length;
 
   const handleCycle = useCallback(
     async (date: string, current: VoteValue | undefined) => {
@@ -195,6 +194,22 @@ export function GroupViewClient(props: Props) {
       .eq("id", group.id);
   }, [supabase, group.id]);
 
+  const handleSetMemberDm = useCallback(
+    async (userId: string, isDm: boolean) => {
+      setMembers((prev) =>
+        prev.map((m) => (m.userId === userId ? { ...m, isDm } : m)),
+      );
+      const result = await setMemberDmAction(group.id, userId, isDm);
+      if (!result.ok) {
+        // Revert on failure.
+        setMembers((prev) =>
+          prev.map((m) => (m.userId === userId ? { ...m, isDm: !isDm } : m)),
+        );
+      }
+    },
+    [group.id],
+  );
+
   return (
     <div
       className={cn(
@@ -260,8 +275,7 @@ export function GroupViewClient(props: Props) {
         >
           <div className="border-b border-hairline/70 lg:border-b-0 lg:border-r">
             <RosterPanel
-              members={props.members}
-              dmId={group.dmId}
+              members={members}
               myUserId={props.currentUser.id}
               leadingDayIso={bestDayIso}
               votes={votes}
@@ -269,7 +283,7 @@ export function GroupViewClient(props: Props) {
           </div>
           <div className="flex flex-col">
             <CalendarPanel
-              dmId={group.dmId}
+              dmUserIds={dmUserIds}
               myUserId={props.currentUser.id}
               votes={votes}
               viableWeekdays={group.viableWeekdays}
@@ -282,16 +296,16 @@ export function GroupViewClient(props: Props) {
             <div className="px-4 pb-4 sm:px-5 lg:hidden">
               <BestDaySummary
                 bestDayIso={bestDayIso}
-                dmName={dm?.user.characterName ?? "The DM"}
-                yesCountExcludingDm={leadingYesExclDm}
-                participantCountExcludingDm={participantCount}
+                yesCount={leadingYesCount}
+                memberCount={members.length}
               />
             </div>
           </div>
           {settingsOpen && isCreator && (
             <aside className="hidden border-l border-hairline/70 bg-parchment/30 lg:block">
               <OwnerSettings
-                dmName={dm?.user.characterName ?? "The DM"}
+                members={members}
+                creatorId={group.creatorId}
                 viableWeekdays={group.viableWeekdays}
                 background={group.background}
                 bannerUrl={group.bannerUrl}
@@ -299,6 +313,7 @@ export function GroupViewClient(props: Props) {
                 onChangeBackground={handleChangeBackground}
                 onUploadBanner={handleUploadBanner}
                 onRemoveBanner={handleRemoveBanner}
+                onSetMemberDm={handleSetMemberDm}
                 onClose={() => setSettingsOpen(false)}
               />
             </aside>
@@ -308,7 +323,8 @@ export function GroupViewClient(props: Props) {
         {settingsOpen && isCreator && (
           <MobileSettingsSheet
             onClose={() => setSettingsOpen(false)}
-            dmName={dm?.user.characterName ?? "The DM"}
+            members={members}
+            creatorId={group.creatorId}
             viableWeekdays={group.viableWeekdays}
             background={group.background}
             bannerUrl={group.bannerUrl}
@@ -316,6 +332,7 @@ export function GroupViewClient(props: Props) {
             onChangeBackground={handleChangeBackground}
             onUploadBanner={handleUploadBanner}
             onRemoveBanner={handleRemoveBanner}
+            onSetMemberDm={handleSetMemberDm}
           />
         )}
       </div>
@@ -349,7 +366,8 @@ function RefreshOnFocus({ onFocus }: { onFocus: () => void }) {
 
 function MobileSettingsSheet({
   onClose,
-  dmName,
+  members,
+  creatorId,
   viableWeekdays,
   background,
   bannerUrl,
@@ -357,9 +375,11 @@ function MobileSettingsSheet({
   onChangeBackground,
   onUploadBanner,
   onRemoveBanner,
+  onSetMemberDm,
 }: {
   onClose: () => void;
-  dmName: string;
+  members: MemberWithUser[];
+  creatorId: string;
   viableWeekdays: Weekday[];
   background: BackgroundScene;
   bannerUrl?: string;
@@ -367,6 +387,7 @@ function MobileSettingsSheet({
   onChangeBackground: (bg: BackgroundScene) => void;
   onUploadBanner: (blob: Blob) => Promise<void>;
   onRemoveBanner: () => void;
+  onSetMemberDm: (userId: string, isDm: boolean) => void;
 }) {
   return (
     <div className="fixed inset-0 z-40 lg:hidden">
@@ -381,7 +402,8 @@ function MobileSettingsSheet({
         </div>
         <div className="px-5 pb-6 pt-2">
           <OwnerSettings
-            dmName={dmName}
+            members={members}
+            creatorId={creatorId}
             viableWeekdays={viableWeekdays}
             background={background}
             bannerUrl={bannerUrl}
@@ -389,6 +411,7 @@ function MobileSettingsSheet({
             onChangeBackground={onChangeBackground}
             onUploadBanner={onUploadBanner}
             onRemoveBanner={onRemoveBanner}
+            onSetMemberDm={onSetMemberDm}
             onClose={onClose}
             embedded
           />

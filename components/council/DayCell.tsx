@@ -9,7 +9,7 @@ type Props = {
   day: CalendarDay;
   votes: Vote[];
   myUserId: string | null;
-  dmId: string;
+  dmUserIds: string[];
   isBestDay: boolean;
   isViableWeekday: boolean;
   onCycle: (date: string) => void;
@@ -26,7 +26,7 @@ export function DayCell({
   day,
   votes,
   myUserId,
-  dmId,
+  dmUserIds,
   isBestDay,
   isViableWeekday,
   onCycle,
@@ -34,8 +34,11 @@ export function DayCell({
   const myVote = myUserId
     ? (votes.find((v) => v.userId === myUserId)?.value as VoteValue | undefined)
     : undefined;
-  const dmVote = votes.find((v) => v.userId === dmId)?.value;
-  const dmFree = dmVote === "yes";
+  const dmFree =
+    dmUserIds.length > 0 &&
+    dmUserIds.every((id) =>
+      votes.some((v) => v.userId === id && v.value === "yes"),
+    );
 
   const yesCount = votes.filter((v) => v.value === "yes").length;
   const maybeCount = votes.filter((v) => v.value === "maybe").length;

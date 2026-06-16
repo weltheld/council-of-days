@@ -42,6 +42,7 @@ export async function createCampaignAction(
       campaign_id: campaign.id,
       user_id: user.id,
       role: "creator",
+      is_dm: true,
     });
   if (memberError) {
     return { ok: false, error: memberError.message };

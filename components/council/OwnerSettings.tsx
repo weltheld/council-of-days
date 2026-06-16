@@ -1,10 +1,13 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { ImagePlus, Trash2, X } from "lucide-react";
-import type { BackgroundScene, Weekday } from "@/lib/types";
+import { Crown, ImagePlus, Trash2, X } from "lucide-react";
+import type { BackgroundScene, Member, User, Weekday } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { Avatar } from "./Avatar";
 import { ImageCropper } from "./ImageCropper";
+
+type MemberWithUser = Member & { user: User };
 
 const WEEKDAYS: { label: string; value: Weekday }[] = [
   { label: "Monday", value: 1 },
@@ -24,7 +27,8 @@ const BACKGROUNDS: { label: string; value: BackgroundScene; swatch: string }[] =
 ];
 
 type Props = {
-  dmName: string;
+  members: MemberWithUser[];
+  creatorId: string;
   viableWeekdays: Weekday[];
   background: BackgroundScene;
   bannerUrl?: string;
@@ -32,13 +36,15 @@ type Props = {
   onChangeBackground: (bg: BackgroundScene) => void;
   onUploadBanner: (blob: Blob) => Promise<void>;
   onRemoveBanner: () => void;
+  onSetMemberDm: (userId: string, isDm: boolean) => void;
   onClose: () => void;
   /** If true, no body padding is applied (use when embedded in sheet that already pads). */
   embedded?: boolean;
 };
 
 export function OwnerSettings({
-  dmName,
+  members,
+  creatorId,
   viableWeekdays,
   background,
   bannerUrl,
@@ -46,6 +52,7 @@ export function OwnerSettings({
   onChangeBackground,
   onUploadBanner,
   onRemoveBanner,
+  onSetMemberDm,
   onClose,
   embedded = false,
 }: Props) {
@@ -103,7 +110,7 @@ export function OwnerSettings({
         <div>
           <h2 className="font-display text-xl text-ink">Poll Settings</h2>
           <p className="mt-1 text-xs text-ink-soft">
-            Only {dmName}, the Dungeon Master, can change which weekdays the party may vote on.
+            As the creator, you control roles, weekdays, banner and background.
           </p>
         </div>
         <button
@@ -114,6 +121,63 @@ export function OwnerSettings({
           <X className="h-5 w-5" />
         </button>
       </div>
+
+      <div className="my-4 h-px bg-hairline" />
+
+      <section>
+        <p className="small-caps">Roles</p>
+        <p className="mt-1 text-xs text-ink-soft">
+          Dungeon Masters and players. There can be more than one of each.
+        </p>
+        <ul className="mt-2 space-y-1.5">
+          {members.map((m) => {
+            const name =
+              m.user.characterName || m.user.displayName || m.user.email;
+            return (
+              <li
+                key={m.userId}
+                className="flex items-center gap-2.5 rounded-md border border-hairline/60 bg-surface/60 px-2.5 py-2"
+              >
+                <Avatar src={m.user.avatarUrl} alt={name} size={30} />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm text-ink">{name}</p>
+                  {m.userId === creatorId && (
+                    <p className="text-[10px] font-display uppercase tracking-wider text-ink-soft">
+                      Creator
+                    </p>
+                  )}
+                </div>
+                <div className="flex overflow-hidden rounded-full border border-hairline">
+                  <button
+                    type="button"
+                    onClick={() => onSetMemberDm(m.userId, true)}
+                    className={cn(
+                      "inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-display uppercase tracking-wider transition",
+                      m.isDm
+                        ? "bg-dm-gold/20 text-dm-gold"
+                        : "text-ink-soft hover:bg-parchment",
+                    )}
+                  >
+                    <Crown className="h-3 w-3" /> DM
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onSetMemberDm(m.userId, false)}
+                    className={cn(
+                      "px-2.5 py-1 text-[11px] font-display uppercase tracking-wider transition",
+                      !m.isDm
+                        ? "bg-ink/10 text-ink"
+                        : "text-ink-soft hover:bg-parchment",
+                    )}
+                  >
+                    Player
+                  </button>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
 
       <div className="my-4 h-px bg-hairline" />
 

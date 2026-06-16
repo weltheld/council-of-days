@@ -16,7 +16,7 @@ import { QuickFillBar } from "./QuickFillBar";
 const WEEKDAYS = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 
 type Props = {
-  dmId: string;
+  dmUserIds: string[];
   myUserId: string | null;
   votes: Vote[];
   viableWeekdays: Weekday[];
@@ -29,7 +29,7 @@ type Props = {
 };
 
 export function CalendarPanel({
-  dmId,
+  dmUserIds,
   myUserId,
   votes,
   viableWeekdays,
@@ -60,13 +60,17 @@ export function CalendarPanel({
     for (const d of days) {
       if (!d.inCurrentMonth || !viableSet.has(d.weekday as Weekday)) continue;
       const dayVotes = monthVotes[d.iso] ?? [];
-      const dmYes = dayVotes.some((v) => v.userId === dmId && v.value === "yes");
-      if (!dmYes) continue;
+      const dmsFree =
+        dmUserIds.length > 0 &&
+        dmUserIds.every((id) =>
+          dayVotes.some((v) => v.userId === id && v.value === "yes"),
+        );
+      if (!dmsFree) continue;
       const yes = dayVotes.filter((v) => v.value === "yes").length;
       if (!best || yes > best.yes) best = { iso: d.iso, yes };
     }
     return best?.iso ?? null;
-  }, [days, monthVotes, dmId, viableSet]);
+  }, [days, monthVotes, dmUserIds, viableSet]);
 
   // Surface best-day to parent (for roster panel + footer).
   const lastReportedRef = useMemo(() => ({ value: null as string | null }), []);
@@ -130,7 +134,7 @@ export function CalendarPanel({
             day={d}
             votes={monthVotes[d.iso] ?? []}
             myUserId={myUserId}
-            dmId={dmId}
+            dmUserIds={dmUserIds}
             isBestDay={bestDayIso === d.iso}
             isViableWeekday={viableSet.has(d.weekday as Weekday)}
             onCycle={(iso) => {

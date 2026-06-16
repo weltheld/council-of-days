@@ -34,6 +34,8 @@ export type Member = {
   groupId: string;
   userId: string;
   role: "creator" | "participant";
+  /** Table role: a Dungeon Master vs a player. Multiple DMs are allowed. */
+  isDm: boolean;
   joinedAt: string;
 };
 

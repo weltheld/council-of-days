@@ -35,6 +35,7 @@ export type CampaignMemberRow = {
   campaign_id: string;
   user_id: string;
   role: MemberRoleDb;
+  is_dm: boolean;
   joined_at: string;
 };
 
@@ -117,12 +118,14 @@ export type Database = {
           campaign_id: string;
           user_id: string;
           role?: MemberRoleDb;
+          is_dm?: boolean;
           joined_at?: string;
         };
         Update: {
           campaign_id?: string;
           user_id?: string;
           role?: MemberRoleDb;
+          is_dm?: boolean;
           joined_at?: string;
         };
         Relationships: [];

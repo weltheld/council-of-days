@@ -11,7 +11,6 @@ type MemberWithUser = Member & { user: User };
 
 type Props = {
   members: MemberWithUser[];
-  dmId: string;
   myUserId: string | null;
   /** The leading day (best day) — drives the per-member chip column. */
   leadingDayIso: string | null;
@@ -26,13 +25,12 @@ function isoToWeekdayLabel(iso: string) {
 
 export function RosterPanel({
   members,
-  dmId,
   myUserId,
   leadingDayIso,
   votes,
 }: Props) {
-  const dm = members.find((m) => m.userId === dmId);
-  const party = members.filter((m) => m.userId !== dmId);
+  const dms = members.filter((m) => m.isDm);
+  const party = members.filter((m) => !m.isDm);
   const leadingVotes = leadingDayIso
     ? votes.filter((v) => v.date === leadingDayIso)
     : [];
@@ -42,17 +40,29 @@ export function RosterPanel({
 
   return (
     <aside className="flex flex-col gap-4 p-4 sm:p-5">
-      {dm && (
-        <div className="flex items-start gap-3 rounded-card border border-dm-gold/40 bg-dm-gold/10 p-3">
-          <Avatar src={dm.user.avatarUrl} alt={dm.user.characterName} size={56} ring="gold" />
-          <div className="min-w-0 flex-1">
-            <p className="font-display text-lg text-ink leading-tight truncate">
-              {dm.user.characterName}
-            </p>
-            <p className="mt-0.5 flex items-center gap-1 text-[11px] font-display tracking-wider uppercase text-dm-gold">
-              <Crown className="h-3.5 w-3.5" /> Dungeon Master
-            </p>
-          </div>
+      {dms.length > 0 && (
+        <div className="flex flex-col gap-2">
+          {dms.map((dm) => (
+            <div
+              key={dm.userId}
+              className="flex items-start gap-3 rounded-card border border-dm-gold/40 bg-dm-gold/10 p-3"
+            >
+              <Avatar
+                src={dm.user.avatarUrl}
+                alt={dm.user.characterName}
+                size={56}
+                ring="gold"
+              />
+              <div className="min-w-0 flex-1">
+                <p className="font-display text-lg text-ink leading-tight truncate">
+                  {dm.user.characterName || dm.user.displayName || dm.user.email}
+                </p>
+                <p className="mt-0.5 flex items-center gap-1 text-[11px] font-display tracking-wider uppercase text-dm-gold">
+                  <Crown className="h-3.5 w-3.5" /> Dungeon Master
+                </p>
+              </div>
+            </div>
+          ))}
         </div>
       )}
 

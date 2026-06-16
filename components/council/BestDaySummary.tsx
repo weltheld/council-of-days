@@ -2,16 +2,14 @@ import { longDateLabel, weekdayLabel } from "@/lib/calendar";
 
 type Props = {
   bestDayIso: string | null;
-  dmName: string;
-  yesCountExcludingDm: number;
-  participantCountExcludingDm: number;
+  yesCount: number;
+  memberCount: number;
 };
 
 export function BestDaySummary({
   bestDayIso,
-  dmName,
-  yesCountExcludingDm,
-  participantCountExcludingDm,
+  yesCount,
+  memberCount,
 }: Props) {
   if (!bestDayIso) {
     return (
@@ -29,8 +27,8 @@ export function BestDaySummary({
       </p>
       <p className="mt-1 text-sm text-ink">
         <span className="font-display">{weekday}</span>,{" "}
-        {full.replace(/, \d{4}/, "")} &mdash; {dmName} + {yesCountExcludingDm} of{" "}
-        {participantCountExcludingDm} can make it
+        {full.replace(/, \d{4}/, "")} &mdash; {yesCount} of {memberCount} can
+        make it
       </p>
     </div>
   );

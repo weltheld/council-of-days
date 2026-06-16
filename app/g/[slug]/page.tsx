@@ -35,7 +35,7 @@ export default async function GroupPage({
   const [{ data: membersRows }, { data: votesRows }] = await Promise.all([
     supabase
       .from("campaign_members")
-      .select("campaign_id, user_id, role, joined_at")
+      .select("campaign_id, user_id, role, is_dm, joined_at")
       .eq("campaign_id", campaign.id),
     supabase
       .from("votes")
@@ -70,6 +70,7 @@ export default async function GroupPage({
       groupId: row.campaign_id,
       userId: row.user_id,
       role: row.role === "creator" ? "creator" : "participant",
+      isDm: row.is_dm,
       joinedAt: row.joined_at,
     });
   }
