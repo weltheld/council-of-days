@@ -1,6 +1,6 @@
 "use client";
 
-import { Crown } from "lucide-react";
+import { VenetianMask } from "lucide-react";
 import { Avatar } from "./Avatar";
 import type { Member, User } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -36,7 +36,7 @@ export function RosterPanel({ members, myUserId }: Props) {
                   {dm.user.characterName || dm.user.displayName || dm.user.email}
                 </p>
                 <p className="mt-0.5 flex items-center gap-1 text-[11px] font-display tracking-wider uppercase text-dm-gold">
-                  <Crown className="h-3.5 w-3.5" /> Dungeon Master
+                  <VenetianMask className="h-3.5 w-3.5 shrink-0" /> Dungeon Master
                 </p>
               </div>
             </div>

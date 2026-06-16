@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Crown } from "lucide-react";
+import { VenetianMask } from "lucide-react";
 import { Crest } from "@/components/council/Crest";
 import { TextField } from "@/components/council/TextField";
 import { WaxButton } from "@/components/council/WaxButton";
@@ -168,7 +168,7 @@ export function InvitePageClient({
                 </div>
                 {m.isDm ? (
                   <span className="inline-flex items-center gap-1 text-xs font-display tracking-wider uppercase text-dm-gold">
-                    <Crown className="h-3.5 w-3.5" /> DM
+                    <VenetianMask className="h-3.5 w-3.5" /> DM
                   </span>
                 ) : (
                   <span className="text-xs font-display tracking-wider uppercase text-vote-yes">

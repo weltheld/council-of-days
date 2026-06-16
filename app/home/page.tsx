@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Crown, UserPlus } from "lucide-react";
+import { UserPlus, VenetianMask } from "lucide-react";
 import {
   getServerSupabase,
   getServiceRoleSupabase,
@@ -159,7 +159,7 @@ export default async function HomePage() {
             href="/new"
             className="inline-flex items-center gap-2 rounded-md border border-hairline bg-surface/60 px-3 py-2 font-display text-xs font-semibold tracking-wider uppercase text-ink-soft hover:bg-parchment hover:text-ink transition-colors"
           >
-            <Crown className="h-3.5 w-3.5 text-dm-gold" />
+            <VenetianMask className="h-3.5 w-3.5 text-dm-gold" />
             Host a new campaign
           </Link>
         </div>
@@ -246,7 +246,7 @@ function CampaignCard({
           <span className="pointer-events-auto inline-flex shrink-0 items-center gap-1 rounded-full border border-surface/30 bg-ink/55 px-2.5 py-1 text-[10px] font-body font-bold uppercase tracking-wide text-surface backdrop-blur-sm">
             {isHost ? (
               <>
-                <Crown className="h-3 w-3 text-dm-gold" /> Creator
+                <VenetianMask className="h-3 w-3 text-dm-gold" /> Creator
               </>
             ) : (
               "Player"

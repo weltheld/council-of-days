@@ -1,6 +1,6 @@
 "use client";
 
-import { Crown } from "lucide-react";
+import { VenetianMask } from "lucide-react";
 import type { CalendarDay } from "@/lib/calendar";
 import type { Vote, VoteValue } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -105,7 +105,7 @@ export function DayCell({
           )}
         </div>
         {dmFree && day.inCurrentMonth && (
-          <Crown className="h-3 w-3 text-dm-gold" aria-label="DM is free" />
+          <VenetianMask className="h-3 w-3 text-dm-gold" aria-label="DM is free" />
         )}
       </div>
 

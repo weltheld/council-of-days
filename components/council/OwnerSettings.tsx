@@ -272,8 +272,8 @@ function MemberRoleRow({
         <Avatar src={member.user.avatarUrl} alt={name} size={30} />
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm text-ink">{name}</p>
-          <p className="flex items-center gap-1 text-[10px] font-display uppercase tracking-wider text-ink-soft">
-            <RoleIcon className="h-3 w-3" />
+          <p className="flex items-center gap-1 text-[10px] font-display uppercase leading-none tracking-wider text-ink-soft">
+            <RoleIcon className="h-3 w-3 shrink-0" />
             {member.isDm ? "Dungeon Master" : "Player"}
             {isCreator && " · Creator"}
           </p>
