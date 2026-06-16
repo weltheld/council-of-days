@@ -1,12 +1,10 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Crown, LogOut } from "lucide-react";
+import { Crown, UserPlus } from "lucide-react";
 import { getServerSupabase } from "@/lib/supabase/server";
-import { Crest } from "@/components/council/Crest";
+import { AppHeader } from "@/components/council/AppHeader";
 import { Avatar } from "@/components/council/Avatar";
 import { cn } from "@/lib/utils";
-import { signOutAction } from "@/app/auth/actions";
-import type { User } from "@/lib/types";
 
 export default async function HomePage() {
   const supabase = await getServerSupabase();
@@ -91,14 +89,6 @@ export default async function HomePage() {
     (c) => roleById[c.id] !== "creator",
   );
 
-  const currentUser: User = {
-    id: user.id,
-    email: profile?.email ?? user.email ?? "",
-    displayName: profile?.display_name ?? "",
-    characterName: profile?.character_name ?? "",
-    avatarUrl: profile?.avatar_url ?? undefined,
-  };
-
   const displayFirst =
     profile?.display_name?.split(" ")[0] ??
     profile?.character_name ??
@@ -107,22 +97,10 @@ export default async function HomePage() {
 
   return (
     <div className="min-h-screen bg-parchment">
-      {/* Top Bar */}
-      <header className="relative z-10 border-b border-hairline">
-        <div className="mx-auto flex max-w-[1440px] items-center gap-4 px-4 py-3 sm:px-8 sm:py-[18px]">
-          <Crest size={46} className="hidden sm:inline-flex" />
-          <div className="min-w-0">
-            <h1 className="font-display text-lg font-bold leading-tight text-ink sm:text-[22px]">
-              Council of Days
-            </h1>
-            <p className="text-[11px] font-display text-ink-soft leading-tight">
-              Campaign home
-            </p>
-          </div>
-          <div className="flex-1" />
-          <AccountChip user={currentUser} />
-        </div>
-      </header>
+      <AppHeader
+        firstName={displayFirst}
+        avatarUrl={profile?.avatar_url ?? undefined}
+      />
 
       {/* Body */}
       <main className="relative z-10 mx-auto flex max-w-[1440px] flex-col gap-7 px-4 pb-10 pt-7 sm:flex-row sm:items-start sm:gap-7 sm:px-9 sm:pb-9 sm:pt-[30px]">
@@ -183,47 +161,18 @@ export default async function HomePage() {
               No campaigns yet — host one or wait for an invite.
             </p>
           ) : (
-            <>
-              {hostedCampaigns.length > 0 && (
-                <div className="flex flex-col gap-3">
-                  <p className="font-body text-[11px] font-bold uppercase tracking-wider text-ink-soft">
-                    Hosted by you
-                  </p>
-                  <div className="flex flex-col gap-4">
-                    {hostedCampaigns.map((c) => (
-                      <CampaignCard
-                        key={c.id}
-                        slug={c.slug}
-                        name={c.name}
-                        bannerUrl={c.banner_url}
-                        isHost
-                        members={membersByCampaign[c.id] ?? []}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {playerCampaigns.length > 0 && (
-                <div className="flex flex-col gap-3">
-                  <p className="font-body text-[11px] font-bold uppercase tracking-wider text-ink-soft">
-                    You&apos;re a player
-                  </p>
-                  <div className="flex flex-col gap-4">
-                    {playerCampaigns.map((c) => (
-                      <CampaignCard
-                        key={c.id}
-                        slug={c.slug}
-                        name={c.name}
-                        bannerUrl={c.banner_url}
-                        isHost={false}
-                        members={membersByCampaign[c.id] ?? []}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-            </>
+            <div className="flex flex-col gap-4">
+              {[...hostedCampaigns, ...playerCampaigns].map((c) => (
+                <CampaignCard
+                  key={c.id}
+                  slug={c.slug}
+                  name={c.name}
+                  bannerUrl={c.banner_url}
+                  isHost={roleById[c.id] === "creator"}
+                  members={membersByCampaign[c.id] ?? []}
+                />
+              ))}
+            </div>
           )}
         </section>
       </main>
@@ -286,73 +235,57 @@ function CampaignCard({
           >
             {name}
           </h4>
-          {isHost && (
-            <span
-              className={cn(
-                "pointer-events-auto inline-flex shrink-0 items-center gap-1 rounded-full border px-2.5 py-1 text-[10px] font-body font-bold uppercase tracking-wide",
-                bannerUrl
-                  ? "border-dm-gold/60 bg-ink/40 text-dm-gold backdrop-blur-sm"
-                  : "border-dm-gold/50 bg-dm-gold/10 text-dm-gold",
-              )}
-            >
-              <Crown className="h-3 w-3" /> Host
-            </span>
-          )}
+          {/* Role badge — dark plate keeps it readable over any banner. */}
+          <span className="pointer-events-auto inline-flex shrink-0 items-center gap-1 rounded-full border border-surface/30 bg-ink/55 px-2.5 py-1 text-[10px] font-body font-bold uppercase tracking-wide text-surface backdrop-blur-sm">
+            {isHost ? (
+              <>
+                <Crown className="h-3 w-3 text-dm-gold" /> Creator
+              </>
+            ) : (
+              "Player"
+            )}
+          </span>
         </div>
 
-        <div className="flex items-center gap-2">
-          <div className="flex -space-x-3">
-            {shown.map((m) => (
+        <div className="flex items-end justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <div className="flex -space-x-3">
+              {shown.map((m) => (
+                <span
+                  key={m.userId}
+                  className={cn(
+                    "inline-block rounded-full ring-2",
+                    bannerUrl ? "ring-ink/50" : "ring-surface",
+                  )}
+                  title={m.name}
+                >
+                  <Avatar src={m.avatarUrl} alt={m.name} size={48} />
+                </span>
+              ))}
+            </div>
+            {extra > 0 && (
               <span
-                key={m.userId}
                 className={cn(
-                  "inline-block rounded-full ring-2",
-                  bannerUrl ? "ring-ink/50" : "ring-surface",
+                  "font-body text-sm font-semibold",
+                  bannerUrl ? "text-surface/90" : "text-ink-soft",
                 )}
-                title={m.name}
               >
-                <Avatar src={m.avatarUrl} alt={m.name} size={48} />
+                +{extra}
               </span>
-            ))}
+            )}
           </div>
-          {extra > 0 && (
-            <span
-              className={cn(
-                "font-body text-sm font-semibold",
-                bannerUrl ? "text-surface/90" : "text-ink-soft",
-              )}
+
+          {isHost && (
+            <Link
+              href={`/g/${slug}/invite`}
+              className="pointer-events-auto inline-flex shrink-0 items-center gap-1.5 rounded-full border border-surface/30 bg-ink/55 px-3 py-1.5 text-xs font-body font-bold text-surface backdrop-blur-sm hover:bg-ink/70"
             >
-              +{extra}
-            </span>
+              <UserPlus className="h-3.5 w-3.5" />
+              Invite players
+            </Link>
           )}
         </div>
       </div>
-    </div>
-  );
-}
-
-function AccountChip({ user }: { user: User }) {
-  return (
-    <div className="flex items-center gap-2">
-      <Link
-        href="/profile"
-        className="inline-flex items-center gap-2 rounded-full border border-hairline bg-surface py-1.5 pl-1.5 pr-3 text-xs text-ink-soft shadow-sm hover:bg-parchment transition-colors"
-        title="Edit profile"
-      >
-        <Avatar src={user.avatarUrl} alt={user.displayName || user.email} size={22} />
-        <span className="max-w-[160px] truncate font-body font-bold text-ink">
-          {user.displayName || user.email}
-        </span>
-      </Link>
-      <form action={signOutAction}>
-        <button
-          type="submit"
-          className="inline-flex items-center gap-1.5 rounded-full border border-hairline bg-surface px-3 py-1.5 text-xs text-ink-soft shadow-sm hover:bg-parchment transition-colors"
-        >
-          <LogOut className="h-3.5 w-3.5" />
-          <span className="hidden sm:inline">Sign out</span>
-        </button>
-      </form>
     </div>
   );
 }

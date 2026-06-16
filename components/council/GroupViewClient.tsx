@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { TopBar } from "@/components/council/TopBar";
+import { Settings2 } from "lucide-react";
+import { AppHeader } from "@/components/council/AppHeader";
 import { RosterPanel } from "@/components/council/RosterPanel";
 import { CalendarPanel } from "@/components/council/CalendarPanel";
 import { OwnerSettings } from "@/components/council/OwnerSettings";
@@ -44,6 +45,11 @@ export function GroupViewClient(props: Props) {
 
   const supabase = getBrowserSupabase();
   const isCreator = currentUserMatches(props.currentUser.id, group.creatorId);
+  const firstName =
+    props.currentUser.displayName?.split(" ")[0] ||
+    props.currentUser.characterName ||
+    props.currentUser.email?.split("@")[0] ||
+    "Adventurer";
 
   // Deep link from the home card's "Edit" button opens Poll Settings.
   useEffect(() => {
@@ -197,10 +203,9 @@ export function GroupViewClient(props: Props) {
       )}
     >
       <div className="relative flex min-h-screen flex-col">
-        <TopBar
-          currentUser={props.currentUser}
-          roleLabel={isCreator ? "Creator" : "Player"}
-          onOpenSettings={isCreator ? () => setSettingsOpen(true) : undefined}
+        <AppHeader
+          firstName={firstName}
+          avatarUrl={props.currentUser.avatarUrl}
         />
 
         {group.bannerUrl ? (
@@ -213,15 +218,35 @@ export function GroupViewClient(props: Props) {
             />
             {/* Scrim guarantees the title reads over any banner colour. */}
             <div className="absolute inset-0 bg-gradient-to-t from-ink/85 via-ink/35 to-ink/10" />
+            {isCreator && (
+              <button
+                type="button"
+                onClick={() => setSettingsOpen(true)}
+                className="absolute right-4 top-4 inline-flex items-center gap-1.5 rounded-full border border-surface/30 bg-ink/55 px-3 py-1.5 text-xs font-body font-bold text-surface backdrop-blur-sm hover:bg-ink/70 sm:right-8"
+              >
+                <Settings2 className="h-3.5 w-3.5" />
+                Poll settings
+              </button>
+            )}
             <h1 className="absolute inset-x-0 bottom-0 truncate px-4 py-3 font-display text-2xl font-bold text-surface drop-shadow-[0_2px_6px_rgba(0,0,0,0.85)] sm:px-8 sm:text-4xl">
               {group.name}
             </h1>
           </div>
         ) : (
-          <div className="border-b border-hairline px-4 py-4 sm:px-8">
+          <div className="flex items-center justify-between gap-3 border-b border-hairline px-4 py-4 sm:px-8">
             <h1 className="truncate font-display text-2xl font-bold text-ink sm:text-4xl">
               {group.name}
             </h1>
+            {isCreator && (
+              <button
+                type="button"
+                onClick={() => setSettingsOpen(true)}
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-hairline bg-surface px-3 py-1.5 text-xs font-body font-bold text-ink-soft shadow-sm hover:bg-parchment hover:text-ink"
+              >
+                <Settings2 className="h-3.5 w-3.5" />
+                Poll settings
+              </button>
+            )}
           </div>
         )}
 
