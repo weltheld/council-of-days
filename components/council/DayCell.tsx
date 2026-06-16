@@ -34,15 +34,23 @@ export function DayCell({
   nameByUserId,
   onCycle,
 }: Props) {
-  const namesFor = (value: VoteValue) =>
-    votes
-      .filter((v) => v.value === value)
-      .map((v) => nameByUserId[v.userId] ?? "Someone");
-  const tooltipGroups: { label: string; names: string[] }[] = [
-    { label: "Yes", names: namesFor("yes") },
-    { label: "Maybe", names: namesFor("maybe") },
-    { label: "No", names: namesFor("no") },
-  ].filter((g) => g.names.length > 0);
+  // Tooltip: every member, name coloured by their vote; non-voters greyed.
+  const voteByUserId = new Map(votes.map((v) => [v.userId, v.value]));
+  const rank: Record<string, number> = { yes: 0, maybe: 1, no: 2 };
+  const tooltipRows = Object.entries(nameByUserId)
+    .map(([id, name]) => ({ name, value: voteByUserId.get(id) }))
+    .sort(
+      (a, b) =>
+        (a.value ? rank[a.value] : 3) - (b.value ? rank[b.value] : 3),
+    );
+  const voteColor = (value: VoteValue | undefined) =>
+    value === "yes"
+      ? "text-vote-yes"
+      : value === "maybe"
+        ? "text-vote-maybe"
+        : value === "no"
+          ? "text-vote-no"
+          : "text-ink-soft/45";
   const myVote = myUserId
     ? (votes.find((v) => v.userId === myUserId)?.value as VoteValue | undefined)
     : undefined;
@@ -154,14 +162,14 @@ export function DayCell({
       </div>
     </button>
 
-      {day.inCurrentMonth && tooltipGroups.length > 0 && (
-        <div className="pointer-events-none absolute bottom-full left-1/2 z-30 mb-1.5 hidden w-max max-w-[220px] -translate-x-1/2 rounded-md border border-ink/20 bg-ink px-3 py-2 text-left text-parchment shadow-lg group-hover:block">
-          {tooltipGroups.map((g) => (
-            <div key={g.label} className="text-[11px] leading-snug">
-              <span className="font-display tracking-wider uppercase text-dm-gold">
-                {g.label}:
-              </span>{" "}
-              {g.names.join(", ")}
+      {day.inCurrentMonth && tooltipRows.length > 0 && (
+        <div className="pointer-events-none absolute bottom-full left-1/2 z-30 mb-1.5 hidden w-max max-w-[220px] -translate-x-1/2 rounded-md border border-hairline bg-surface px-3 py-2 text-left shadow-parchment group-hover:block">
+          {tooltipRows.map((r) => (
+            <div
+              key={r.name}
+              className={cn("text-[11px] leading-snug", voteColor(r.value))}
+            >
+              {r.name}
             </div>
           ))}
         </div>
