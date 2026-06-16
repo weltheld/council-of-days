@@ -190,7 +190,7 @@ export function ProfileForm({
           )}
 
           <WaxButton type="submit" className="w-full" disabled={pending}>
-            {pending ? "Saving..." : "Take my seat"}
+            {pending ? "Saving..." : "Save"}
           </WaxButton>
         </form>
       </ParchmentCard>
