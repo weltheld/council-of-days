@@ -4,6 +4,7 @@ import { Crown, LogOut } from "lucide-react";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { Crest } from "@/components/council/Crest";
 import { Avatar } from "@/components/council/Avatar";
+import { cn } from "@/lib/utils";
 import { signOutAction } from "@/app/auth/actions";
 import type { User } from "@/lib/types";
 
@@ -243,72 +244,84 @@ function CampaignCard({
   isHost: boolean;
   members: { userId: string; name: string; avatarUrl?: string }[];
 }) {
-  const shown = members.slice(0, 6);
+  const shown = members.slice(0, 5);
   const extra = members.length - shown.length;
+  const nameClass = bannerUrl
+    ? "text-surface drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)]"
+    : "text-ink";
   return (
     <div
-      className="group relative min-h-[150px] overflow-hidden rounded-xl border shadow-parchment transition-all hover:shadow-md"
+      className="group relative min-h-[160px] overflow-hidden rounded-xl border bg-surface shadow-parchment transition-all hover:shadow-md"
       style={
         isHost
           ? { borderColor: "#7A5A12", borderWidth: "1.5px" }
           : { borderColor: "#D8C8AC", borderWidth: "1px" }
       }
     >
-      {/* Banner (or themed fallback) as the card background */}
-      {bannerUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={bannerUrl}
-          alt=""
-          className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-        />
-      ) : (
-        <div
-          className="absolute inset-0"
-          style={{
-            background: isHost
-              ? "linear-gradient(135deg, #6B2230, #3a1a20)"
-              : "linear-gradient(135deg, #5A4A38, #36291d)",
-          }}
-        />
+      {/* Banner background (only when one is set). The fallback is simply the
+          card's normal surface colour. */}
+      {bannerUrl && (
+        <>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={bannerUrl}
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-ink/90 via-ink/60 to-ink/45" />
+        </>
       )}
-      {/* Legibility overlay — dark enough at the top so the name reads on
-          any banner. */}
-      <div className="absolute inset-0 bg-gradient-to-t from-ink/90 via-ink/60 to-ink/50" />
 
-      {/* Full-card navigation target (sibling, not parent, of the edit link) */}
+      {/* Full-card navigation target */}
       <Link
         href={`/g/${slug}`}
         aria-label={`Open ${name}`}
         className="absolute inset-0 z-0"
       />
 
-      <div className="pointer-events-none relative z-10 flex min-h-[150px] flex-col justify-between gap-3 p-[18px]">
+      <div className="pointer-events-none relative z-10 flex min-h-[160px] flex-col justify-between gap-3 p-[18px]">
         <div className="flex items-start justify-between gap-2">
-          <h4 className="font-display text-lg font-bold leading-tight text-surface drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)]">
+          <h4
+            className={`font-display text-lg font-bold leading-tight ${nameClass}`}
+          >
             {name}
           </h4>
           {isHost && (
-            <span className="pointer-events-auto inline-flex shrink-0 items-center gap-1 rounded-full border border-dm-gold/60 bg-ink/40 px-2.5 py-1 text-[10px] font-body font-bold uppercase tracking-wide text-dm-gold backdrop-blur-sm">
+            <span
+              className={cn(
+                "pointer-events-auto inline-flex shrink-0 items-center gap-1 rounded-full border px-2.5 py-1 text-[10px] font-body font-bold uppercase tracking-wide",
+                bannerUrl
+                  ? "border-dm-gold/60 bg-ink/40 text-dm-gold backdrop-blur-sm"
+                  : "border-dm-gold/50 bg-dm-gold/10 text-dm-gold",
+              )}
+            >
               <Crown className="h-3 w-3" /> Host
             </span>
           )}
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="flex -space-x-2">
+          <div className="flex -space-x-3">
             {shown.map((m) => (
               <span
                 key={m.userId}
-                className="inline-block rounded-full ring-2 ring-ink/40"
+                className={cn(
+                  "inline-block rounded-full ring-2",
+                  bannerUrl ? "ring-ink/50" : "ring-surface",
+                )}
                 title={m.name}
               >
-                <Avatar src={m.avatarUrl} alt={m.name} size={30} />
+                <Avatar src={m.avatarUrl} alt={m.name} size={48} />
               </span>
             ))}
           </div>
           {extra > 0 && (
-            <span className="font-body text-xs font-semibold text-surface/90">
+            <span
+              className={cn(
+                "font-body text-sm font-semibold",
+                bannerUrl ? "text-surface/90" : "text-ink-soft",
+              )}
+            >
               +{extra}
             </span>
           )}

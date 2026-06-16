@@ -9,9 +9,8 @@ import { Avatar } from "@/components/council/Avatar";
 import { StageBackdrop } from "@/components/council/StageBackdrop";
 import { TextField } from "@/components/council/TextField";
 import { WaxButton } from "@/components/council/WaxButton";
-import { getBrowserSupabase } from "@/lib/supabase/client";
-import { AvatarCropper } from "@/components/council/AvatarCropper";
-import { updateProfileAction } from "./actions";
+import { ImageCropper } from "@/components/council/ImageCropper";
+import { updateProfileAction, uploadAvatarAction } from "./actions";
 
 const PORTRAITS = [
   "/images/avatar-mara.png",
@@ -29,11 +28,9 @@ type Initial = {
 };
 
 export function ProfileForm({
-  userId,
   email,
   initial,
 }: {
-  userId: string;
   email: string;
   initial: Initial;
 }) {
@@ -69,25 +66,15 @@ export function ProfileForm({
   async function uploadCropped(blob: Blob) {
     setUploading(true);
     try {
-      const supabase = getBrowserSupabase();
-      const path = `${userId}/avatar-${Date.now()}.jpg`;
-      const { error: uploadError } = await supabase.storage
-        .from("avatars")
-        .upload(path, blob, {
-          upsert: true,
-          cacheControl: "3600",
-          contentType: "image/jpeg",
-        });
-      if (uploadError) throw uploadError;
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from("avatars").getPublicUrl(path);
-      setAvatar(publicUrl);
+      const fd = new FormData();
+      fd.append("file", blob, "avatar.jpg");
+      const result = await uploadAvatarAction(fd);
+      if (!result.ok) {
+        setServerError(result.error);
+        return;
+      }
+      setAvatar(result.url);
       setCropFile(null);
-    } catch (err) {
-      setServerError(
-        err instanceof Error ? err.message : "Upload failed. Try again.",
-      );
     } finally {
       setUploading(false);
     }
@@ -118,8 +105,13 @@ export function ProfileForm({
   return (
     <StageBackdrop>
       {cropFile && (
-        <AvatarCropper
+        <ImageCropper
           file={cropFile}
+          round
+          aspect={1}
+          viewWidth={256}
+          outputWidth={512}
+          title="Position your portrait"
           onCancel={() => setCropFile(null)}
           onConfirm={uploadCropped}
         />

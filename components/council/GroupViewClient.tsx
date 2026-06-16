@@ -18,6 +18,7 @@ import type {
 } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { getBrowserSupabase } from "@/lib/supabase/client";
+import { uploadBannerAction } from "@/app/g/[slug]/bannerActions";
 
 type MemberWithUser = Member & { user: User };
 
@@ -50,7 +51,7 @@ export function GroupViewClient(props: Props) {
       setSettingsOpen(true);
     }
   }, [isCreator, searchParams]);
-  const subtitle = "Council of Days";
+  const subtitle = "";
 
   const dm = props.members.find((m) => m.userId === group.dmId);
   const leadingVotes = bestDayIso
@@ -171,25 +172,14 @@ export function GroupViewClient(props: Props) {
   );
 
   const handleUploadBanner = useCallback(
-    async (file: File) => {
-      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
-      const path = `${group.id}/banner-${Date.now()}.${ext}`;
-      const { error: uploadError } = await supabase.storage
-        .from("banners")
-        .upload(path, file, { upsert: true, cacheControl: "3600" });
-      if (uploadError) throw uploadError;
-
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from("banners").getPublicUrl(path);
-
-      setGroup((g) => ({ ...g, bannerUrl: publicUrl }));
-      await supabase
-        .from("campaigns")
-        .update({ banner_url: publicUrl })
-        .eq("id", group.id);
+    async (blob: Blob) => {
+      const fd = new FormData();
+      fd.append("file", blob, "banner.jpg");
+      const result = await uploadBannerAction(group.id, fd);
+      if (!result.ok) throw new Error(result.error);
+      setGroup((g) => ({ ...g, bannerUrl: result.url }));
     },
-    [supabase, group.id],
+    [group.id],
   );
 
   const handleRemoveBanner = useCallback(async () => {
@@ -214,6 +204,7 @@ export function GroupViewClient(props: Props) {
           slug={group.slug}
           currentUser={props.currentUser}
           isCreator={isCreator}
+          roleLabel={isCreator ? "Creator" : "Player"}
           onOpenSettings={isCreator ? () => setSettingsOpen(true) : undefined}
         />
 
@@ -343,7 +334,7 @@ function MobileSettingsSheet({
   bannerUrl?: string;
   onToggleWeekday: (w: Weekday) => void;
   onChangeBackground: (bg: BackgroundScene) => void;
-  onUploadBanner: (file: File) => Promise<void>;
+  onUploadBanner: (blob: Blob) => Promise<void>;
   onRemoveBanner: () => void;
 }) {
   return (

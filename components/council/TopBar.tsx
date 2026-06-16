@@ -15,6 +15,8 @@ type Props = {
   slug: string;
   currentUser?: User;
   isCreator: boolean;
+  /** "Creator" | "Player" shown under the account email. */
+  roleLabel?: string;
   /** Show the settings cog (mobile-only trigger, also visible on small screens). */
   onOpenSettings?: () => void;
 };
@@ -25,6 +27,7 @@ export function TopBar({
   slug,
   currentUser,
   isCreator,
+  roleLabel,
   onOpenSettings,
 }: Props) {
   return (
@@ -35,9 +38,11 @@ export function TopBar({
           <h1 className="truncate font-display text-base sm:text-2xl text-ink leading-tight">
             {groupName}
           </h1>
-          <p className="mt-0.5 truncate text-[11px] sm:text-sm text-ink-soft">
-            {subtitle}
-          </p>
+          {subtitle && (
+            <p className="mt-0.5 truncate text-[11px] sm:text-sm text-ink-soft">
+              {subtitle}
+            </p>
+          )}
         </div>
 
         {isCreator && (
@@ -57,7 +62,11 @@ export function TopBar({
         )}
 
         {currentUser && (
-          <SignedInAccount user={currentUser} className="hidden md:inline-flex" />
+          <SignedInAccount
+            user={currentUser}
+            roleLabel={roleLabel}
+            className="hidden md:inline-flex"
+          />
         )}
 
         {onOpenSettings && (
@@ -86,7 +95,15 @@ function Crown(props: React.SVGProps<SVGSVGElement>) {
   );
 }
 
-function SignedInAccount({ user, className }: { user: User; className?: string }) {
+function SignedInAccount({
+  user,
+  roleLabel,
+  className,
+}: {
+  user: User;
+  roleLabel?: string;
+  className?: string;
+}) {
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
 
@@ -104,8 +121,15 @@ function SignedInAccount({ user, className }: { user: User; className?: string }
           alt={user.displayName || user.email}
           size={28}
         />
-        <span className="max-w-[180px] truncate text-xs text-ink-soft">
-          {user.email}
+        <span className="flex min-w-0 flex-col items-start leading-tight">
+          <span className="max-w-[180px] truncate text-xs text-ink-soft">
+            {user.email}
+          </span>
+          {roleLabel && (
+            <span className="text-[10px] font-display uppercase tracking-wider text-dm-gold">
+              {roleLabel}
+            </span>
+          )}
         </span>
       </button>
 

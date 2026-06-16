@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { ImagePlus, Trash2, X } from "lucide-react";
 import type { BackgroundScene, Weekday } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { ImageCropper } from "./ImageCropper";
 
 const WEEKDAYS: { label: string; value: Weekday }[] = [
   { label: "Monday", value: 1 },
@@ -29,7 +30,7 @@ type Props = {
   bannerUrl?: string;
   onToggleWeekday: (w: Weekday) => void;
   onChangeBackground: (bg: BackgroundScene) => void;
-  onUploadBanner: (file: File) => Promise<void>;
+  onUploadBanner: (blob: Blob) => Promise<void>;
   onRemoveBanner: () => void;
   onClose: () => void;
   /** If true, no body padding is applied (use when embedded in sheet that already pads). */
@@ -52,8 +53,9 @@ export function OwnerSettings({
   const fileInput = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [cropFile, setCropFile] = useState<File | null>(null);
 
-  async function onPickBanner(e: React.ChangeEvent<HTMLInputElement>) {
+  function onPickBanner(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
@@ -66,9 +68,14 @@ export function OwnerSettings({
       return;
     }
     setUploadError(null);
+    setCropFile(file);
+  }
+
+  async function onCropConfirm(blob: Blob) {
     setUploading(true);
     try {
-      await onUploadBanner(file);
+      await onUploadBanner(blob);
+      setCropFile(null);
     } catch (err) {
       setUploadError(
         err instanceof Error ? err.message : "Upload failed. Try again.",
@@ -80,6 +87,18 @@ export function OwnerSettings({
 
   return (
     <div className={cn("flex h-full flex-col", !embedded && "p-5")}>
+      {cropFile && (
+        <ImageCropper
+          file={cropFile}
+          aspect={4}
+          viewWidth={360}
+          outputWidth={1600}
+          title="Frame your banner"
+          hint="Drag to move, slide to zoom. Shown wide across the calendar."
+          onCancel={() => setCropFile(null)}
+          onConfirm={onCropConfirm}
+        />
+      )}
       <div className="flex items-start justify-between">
         <div>
           <h2 className="font-display text-xl text-ink">Poll Settings</h2>

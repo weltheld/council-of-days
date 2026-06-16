@@ -3,21 +3,40 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { WaxButton } from "./WaxButton";
 
-const VIEWPORT = 256; // on-screen crop circle (px)
-const OUTPUT = 512; // exported image size (px)
-
 type Props = {
   file: File;
+  /** width / height of the crop. 1 = square. */
+  aspect?: number;
+  /** Circular mask (for avatars). */
+  round?: boolean;
+  /** On-screen crop width in px. */
+  viewWidth?: number;
+  /** Exported image width in px. */
+  outputWidth?: number;
+  title?: string;
+  hint?: string;
   onCancel: () => void;
   onConfirm: (blob: Blob) => void | Promise<void>;
 };
 
 /**
- * Circular avatar cropper: drag to pan, slide to zoom. Exports a square
- * JPEG of the visible region so the chosen part of the photo becomes the
- * avatar.
+ * Pan/zoom image cropper. Drag to move, slide to zoom, then export a JPEG
+ * of the visible region at the requested aspect ratio.
  */
-export function AvatarCropper({ file, onCancel, onConfirm }: Props) {
+export function ImageCropper({
+  file,
+  aspect = 1,
+  round = false,
+  viewWidth = 256,
+  outputWidth = 512,
+  title = "Position your image",
+  hint = "Drag to move, slide to zoom.",
+  onCancel,
+  onConfirm,
+}: Props) {
+  const viewHeight = Math.round(viewWidth / aspect);
+  const outputHeight = Math.round(outputWidth / aspect);
+
   const [url, setUrl] = useState<string | null>(null);
   const imgRef = useRef<HTMLImageElement | null>(null);
   const [nat, setNat] = useState<{ w: number; h: number } | null>(null);
@@ -36,26 +55,25 @@ export function AvatarCropper({ file, onCancel, onConfirm }: Props) {
   }, [file]);
 
   const clampOffset = useCallback(
-    (x: number, y: number, s: number, w: number, h: number) => {
-      const minX = VIEWPORT - w * s;
-      const minY = VIEWPORT - h * s;
-      return {
-        x: Math.min(0, Math.max(minX, x)),
-        y: Math.min(0, Math.max(minY, y)),
-      };
-    },
-    [],
+    (x: number, y: number, s: number, w: number, h: number) => ({
+      x: Math.min(0, Math.max(viewWidth - w * s, x)),
+      y: Math.min(0, Math.max(viewHeight - h * s, y)),
+    }),
+    [viewWidth, viewHeight],
   );
 
   function onImgLoad(e: React.SyntheticEvent<HTMLImageElement>) {
     const img = e.currentTarget;
     const w = img.naturalWidth;
     const h = img.naturalHeight;
-    const cover = Math.max(VIEWPORT / w, VIEWPORT / h);
+    const cover = Math.max(viewWidth / w, viewHeight / h);
     setNat({ w, h });
     setMinScale(cover);
     setScale(cover);
-    setOffset({ x: (VIEWPORT - w * cover) / 2, y: (VIEWPORT - h * cover) / 2 });
+    setOffset({
+      x: (viewWidth - w * cover) / 2,
+      y: (viewHeight - h * cover) / 2,
+    });
   }
 
   function onPointerDown(e: React.PointerEvent) {
@@ -75,11 +93,11 @@ export function AvatarCropper({ file, onCancel, onConfirm }: Props) {
   function onZoom(e: React.ChangeEvent<HTMLInputElement>) {
     if (!nat) return;
     const next = Number(e.target.value);
-    // Keep the viewport center anchored while zooming.
-    const c = VIEWPORT / 2;
+    const cx = viewWidth / 2;
+    const cy = viewHeight / 2;
     const ratio = next / scale;
-    const nx = c - (c - offset.x) * ratio;
-    const ny = c - (c - offset.y) * ratio;
+    const nx = cx - (cx - offset.x) * ratio;
+    const ny = cy - (cy - offset.y) * ratio;
     setScale(next);
     setOffset(clampOffset(nx, ny, next, nat.w, nat.h));
   }
@@ -89,15 +107,25 @@ export function AvatarCropper({ file, onCancel, onConfirm }: Props) {
     setBusy(true);
     try {
       const canvas = document.createElement("canvas");
-      canvas.width = OUTPUT;
-      canvas.height = OUTPUT;
+      canvas.width = outputWidth;
+      canvas.height = outputHeight;
       const ctx = canvas.getContext("2d");
       if (!ctx) throw new Error("Canvas not supported.");
-      const sW = VIEWPORT / scale;
-      const sH = VIEWPORT / scale;
+      const sW = viewWidth / scale;
+      const sH = viewHeight / scale;
       const sx = -offset.x / scale;
       const sy = -offset.y / scale;
-      ctx.drawImage(imgRef.current, sx, sy, sW, sH, 0, 0, OUTPUT, OUTPUT);
+      ctx.drawImage(
+        imgRef.current,
+        sx,
+        sy,
+        sW,
+        sH,
+        0,
+        0,
+        outputWidth,
+        outputHeight,
+      );
       const blob = await new Promise<Blob | null>((resolve) =>
         canvas.toBlob(resolve, "image/jpeg", 0.9),
       );
@@ -115,18 +143,18 @@ export function AvatarCropper({ file, onCancel, onConfirm }: Props) {
         className="absolute inset-0 bg-ink/50 backdrop-blur-sm"
         onClick={onCancel}
       />
-      <div className="relative w-full max-w-sm rounded-xl border border-hairline bg-surface p-6 shadow-parchment">
-        <h2 className="text-center font-display text-xl text-ink">
-          Position your portrait
-        </h2>
+      <div className="relative w-full max-w-md rounded-xl border border-hairline bg-surface p-6 shadow-parchment">
+        <h2 className="text-center font-display text-xl text-ink">{title}</h2>
         <p className="mt-1 text-center font-body text-xs text-ink-soft">
-          Drag to move, slide to zoom.
+          {hint}
         </p>
 
         <div className="mt-5 flex justify-center">
           <div
-            className="relative overflow-hidden rounded-full border-2 border-dm-gold bg-parchment touch-none"
-            style={{ width: VIEWPORT, height: VIEWPORT }}
+            className={`relative touch-none overflow-hidden border-2 border-dm-gold bg-parchment ${
+              round ? "rounded-full" : "rounded-md"
+            }`}
+            style={{ width: viewWidth, height: viewHeight }}
             onPointerDown={onPointerDown}
             onPointerMove={onPointerMove}
             onPointerUp={onPointerUp}
@@ -137,7 +165,7 @@ export function AvatarCropper({ file, onCancel, onConfirm }: Props) {
               <img
                 ref={imgRef}
                 src={url}
-                alt="Portrait to crop"
+                alt="Image to crop"
                 onLoad={onImgLoad}
                 draggable={false}
                 className="absolute max-w-none cursor-grab select-none active:cursor-grabbing"
@@ -172,7 +200,7 @@ export function AvatarCropper({ file, onCancel, onConfirm }: Props) {
             Cancel
           </WaxButton>
           <WaxButton onClick={confirm} disabled={busy || !nat}>
-            {busy ? "Saving..." : "Use photo"}
+            {busy ? "Saving..." : "Use image"}
           </WaxButton>
         </div>
       </div>
