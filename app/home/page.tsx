@@ -1,9 +1,13 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Crown, UserPlus } from "lucide-react";
-import { getServerSupabase } from "@/lib/supabase/server";
+import {
+  getServerSupabase,
+  getServiceRoleSupabase,
+} from "@/lib/supabase/server";
 import { AppHeader } from "@/components/council/AppHeader";
 import { Avatar } from "@/components/council/Avatar";
+import { PendingInvites } from "@/components/council/PendingInvites";
 import { cn } from "@/lib/utils";
 
 export default async function HomePage() {
@@ -26,6 +30,40 @@ export default async function HomePage() {
     .order("joined_at", { ascending: false });
 
   const campaignIds = (memberships ?? []).map((m) => m.campaign_id);
+
+  // Pending invitations addressed to this user (existing-user invites). They
+  // are NOT members until they accept. RLS lets them read their own invites;
+  // campaign names are fetched with the service role since they aren't members
+  // of those campaigns yet.
+  const myEmail = (profile?.email ?? user.email ?? "").toLowerCase();
+  const { data: inviteRows } = await supabase
+    .from("invitations")
+    .select("id, campaign_id, status, user_id, email")
+    .neq("status", "joined");
+  const myInvites = (inviteRows ?? []).filter(
+    (i) =>
+      (i.user_id === user.id ||
+        (i.email && i.email.toLowerCase() === myEmail)) &&
+      !campaignIds.includes(i.campaign_id),
+  );
+  let pendingInvites: { id: string; campaignName: string }[] = [];
+  if (myInvites.length > 0) {
+    const admin = getServiceRoleSupabase();
+    const { data: inviteCampaigns } = await admin
+      .from("campaigns")
+      .select("id, name")
+      .in(
+        "id",
+        myInvites.map((i) => i.campaign_id),
+      );
+    const nameById = new Map(
+      (inviteCampaigns ?? []).map((c) => [c.id, c.name] as const),
+    );
+    pendingInvites = myInvites.map((i) => ({
+      id: i.id,
+      campaignName: nameById.get(i.campaign_id) ?? "A campaign",
+    }));
+  }
 
   const campaigns =
     campaignIds.length > 0
@@ -104,6 +142,12 @@ export default async function HomePage() {
         displayName={profile?.display_name ?? ""}
         avatarUrl={profile?.avatar_url ?? undefined}
       />
+
+      {pendingInvites.length > 0 && (
+        <div className="relative z-10 mx-auto w-full max-w-[1440px] px-4 pt-7 sm:px-9 sm:pt-[30px]">
+          <PendingInvites invites={pendingInvites} />
+        </div>
+      )}
 
       {/* Body */}
       <main className="relative z-10 mx-auto flex max-w-[1440px] flex-col gap-7 px-4 pb-10 pt-7 sm:flex-row sm:items-start sm:gap-7 sm:px-9 sm:pb-9 sm:pt-[30px]">
