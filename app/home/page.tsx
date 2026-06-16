@@ -260,10 +260,7 @@ function CampaignCard({
               {shown.map((m) => (
                 <span
                   key={m.userId}
-                  className={cn(
-                    "inline-block rounded-full ring-2",
-                    bannerUrl ? "ring-ink/50" : "ring-surface",
-                  )}
+                  className="inline-flex rounded-full ring-2 ring-surface"
                   title={m.name}
                 >
                   <Avatar src={m.avatarUrl} alt={m.name} size={48} />
