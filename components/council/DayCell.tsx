@@ -99,7 +99,7 @@ export function DayCell({
             </span>
           )}
           {isBestDay && (
-            <span className="ml-1 rounded-sm bg-dm-gold px-1 py-0.5 text-[9px] font-display tracking-wider uppercase text-parchment shadow-sm">
+            <span className="ml-1 hidden rounded-sm bg-dm-gold px-1 py-0.5 text-[9px] font-display tracking-wider uppercase text-parchment shadow-sm sm:inline-block">
               Best day
             </span>
           )}
