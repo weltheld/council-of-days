@@ -99,6 +99,9 @@ export default async function HomePage() {
     <div className="min-h-screen bg-parchment">
       <AppHeader
         firstName={displayFirst}
+        email={profile?.email ?? user.email ?? ""}
+        characterName={profile?.character_name ?? ""}
+        displayName={profile?.display_name ?? ""}
         avatarUrl={profile?.avatar_url ?? undefined}
       />
 

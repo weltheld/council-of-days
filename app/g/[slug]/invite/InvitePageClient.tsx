@@ -2,17 +2,23 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { Crown } from "lucide-react";
 import { Crest } from "@/components/council/Crest";
 import { TextField } from "@/components/council/TextField";
 import { WaxButton } from "@/components/council/WaxButton";
 import { Avatar } from "@/components/council/Avatar";
 import type { BackgroundScene } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { cancelInviteAction, sendInviteAction } from "./actions";
+import {
+  cancelInviteAction,
+  resendInviteAction,
+  sendInviteAction,
+} from "./actions";
 
 type Member = {
   userId: string;
   role: string;
+  isDm: boolean;
   displayName: string;
   email: string;
   avatarUrl?: string;
@@ -84,7 +90,24 @@ export function InvitePageClient({
     });
   }
 
-  const joinedParty = members.filter((m) => m.role !== "creator");
+  function onResend(invitationId: string) {
+    setError(null);
+    setNotice(null);
+    startTransition(async () => {
+      const result = await resendInviteAction(slug, invitationId);
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
+      setNotice("Invitation resent.");
+      router.refresh();
+    });
+  }
+
+  // Show everyone already at the table, DMs included, DMs first.
+  const joinedParty = [...members].sort((a, b) =>
+    a.isDm === b.isDm ? 0 : a.isDm ? -1 : 1,
+  );
   const pendingInvites = invitations.filter((i) => i.status !== "joined");
 
   return (
@@ -143,9 +166,15 @@ export function InvitePageClient({
                     {m.displayName || m.email}
                   </span>
                 </div>
-                <span className="text-xs font-display tracking-wider uppercase text-vote-yes">
-                  Joined
-                </span>
+                {m.isDm ? (
+                  <span className="inline-flex items-center gap-1 text-xs font-display tracking-wider uppercase text-dm-gold">
+                    <Crown className="h-3.5 w-3.5" /> DM
+                  </span>
+                ) : (
+                  <span className="text-xs font-display tracking-wider uppercase text-vote-yes">
+                    Joined
+                  </span>
+                )}
               </li>
             ))}
             {pendingInvites.map((i) => (
@@ -172,6 +201,16 @@ export function InvitePageClient({
                   <span className="text-xs font-display tracking-wider uppercase text-gold">
                     Pending
                   </span>
+                  {!i.displayName && (
+                    <button
+                      type="button"
+                      onClick={() => onResend(i.id)}
+                      disabled={pending}
+                      className="text-xs text-ink-soft hover:text-ink"
+                    >
+                      Resend
+                    </button>
+                  )}
                   <button
                     type="button"
                     onClick={() => onCancel(i.id)}

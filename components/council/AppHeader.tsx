@@ -1,20 +1,29 @@
 import Link from "next/link";
 import { LogOut } from "lucide-react";
 import { Crest } from "./Crest";
-import { Avatar } from "./Avatar";
+import { ProfileDialog } from "./ProfileDialog";
 import { signOutAction } from "@/app/auth/actions";
 
 type Props = {
   firstName: string;
+  email: string;
+  characterName: string;
+  displayName: string;
   avatarUrl?: string;
 };
 
 /**
  * Shared top header used identically on the home and calendar pages:
  * logo + wordmark (links home), the signed-in player's portrait and first
- * name, and a sign-out button. Fixed height so both pages match.
+ * name (opens the profile editor), and a sign-out button.
  */
-export function AppHeader({ firstName, avatarUrl }: Props) {
+export function AppHeader({
+  firstName,
+  email,
+  characterName,
+  displayName,
+  avatarUrl,
+}: Props) {
   return (
     <header className="border-b border-hairline">
       <div className="mx-auto flex h-16 max-w-[1440px] items-center gap-3 px-4 sm:px-8">
@@ -29,16 +38,13 @@ export function AppHeader({ firstName, avatarUrl }: Props) {
           </span>
         </Link>
 
-        <Link
-          href="/profile"
-          title="Edit profile"
-          className="inline-flex items-center gap-2 rounded-full border border-hairline bg-surface py-1 pl-1 pr-3 shadow-sm hover:bg-parchment"
-        >
-          <Avatar src={avatarUrl} alt={firstName} size={30} />
-          <span className="max-w-[100px] truncate font-body text-sm font-bold text-ink sm:max-w-[160px]">
-            {firstName}
-          </span>
-        </Link>
+        <ProfileDialog
+          firstName={firstName}
+          email={email}
+          characterName={characterName}
+          displayName={displayName}
+          avatarUrl={avatarUrl}
+        />
 
         <form action={signOutAction}>
           <button

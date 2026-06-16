@@ -33,7 +33,7 @@ export default async function InvitePage({
       .eq("campaign_id", campaign.id),
     supabase
       .from("campaign_members")
-      .select("user_id, role")
+      .select("user_id, role, is_dm")
       .eq("campaign_id", campaign.id),
   ]);
 
@@ -61,6 +61,7 @@ export default async function InvitePage({
         return {
           userId: m.user_id,
           role: m.role,
+          isDm: m.is_dm,
           displayName: p?.display_name ?? "",
           email: p?.email ?? "",
           avatarUrl: p?.avatar_url ?? undefined,

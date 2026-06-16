@@ -88,6 +88,59 @@ export async function sendInviteAction(
   return { ok: true, emailed: true };
 }
 
+export type ResendInviteResult =
+  | { ok: true }
+  | { ok: false; error: string };
+
+/** Re-send the magic-link email for a pending email invitation. */
+export async function resendInviteAction(
+  slug: string,
+  invitationId: string,
+): Promise<ResendInviteResult> {
+  const supabase = await getServerSupabase();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect(`/login?next=/g/${slug}/invite`);
+
+  const { data: campaign } = await supabase
+    .from("campaigns")
+    .select("id, slug, creator_id")
+    .eq("slug", slug)
+    .maybeSingle();
+  if (!campaign) return { ok: false, error: "Campaign not found." };
+  if (campaign.creator_id !== user.id) {
+    return { ok: false, error: "Only the creator can resend invites." };
+  }
+
+  const { data: invitation } = await supabase
+    .from("invitations")
+    .select("id, email, user_id")
+    .eq("id", invitationId)
+    .maybeSingle();
+  if (!invitation || !invitation.email || invitation.user_id) {
+    return {
+      ok: false,
+      error: "This invite has no email link to resend.",
+    };
+  }
+
+  const admin = getServiceRoleSupabase();
+  const { error: emailErr } = await admin.auth.admin.inviteUserByEmail(
+    invitation.email,
+    { redirectTo: `${siteUrl()}/auth/callback?next=/g/${slug}` },
+  );
+  if (emailErr) return { ok: false, error: emailErr.message };
+
+  await supabase
+    .from("invitations")
+    .update({ status: "sent" })
+    .eq("id", invitationId);
+
+  revalidatePath(`/g/${slug}/invite`);
+  return { ok: true };
+}
+
 export async function cancelInviteAction(slug: string, invitationId: string) {
   const supabase = await getServerSupabase();
   const {

@@ -220,6 +220,9 @@ export function GroupViewClient(props: Props) {
       <div className="relative flex min-h-screen flex-col">
         <AppHeader
           firstName={firstName}
+          email={props.currentUser.email}
+          characterName={props.currentUser.characterName}
+          displayName={props.currentUser.displayName}
           avatarUrl={props.currentUser.avatarUrl}
         />
 
