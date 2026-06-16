@@ -246,7 +246,7 @@ function CampaignCard({
           <span className="pointer-events-auto inline-flex shrink-0 items-center gap-1 rounded-full border border-surface/30 bg-ink/55 px-2.5 py-1 text-[10px] font-body font-bold uppercase tracking-wide text-surface backdrop-blur-sm">
             {isHost ? (
               <>
-                <VenetianMask className="h-3 w-3 text-dm-gold" /> Creator
+                <VenetianMask className="h-3 w-3" /> Creator
               </>
             ) : (
               "Player"
