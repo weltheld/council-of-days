@@ -17,6 +17,7 @@ export default async function ProfilePage() {
 
   return (
     <ProfileForm
+      userId={user.id}
       email={user.email ?? ""}
       initial={{
         character_name: profile?.character_name ?? "",

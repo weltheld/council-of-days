@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Crown, Users, CalendarDays } from "lucide-react";
+import { Crown, Users, CalendarDays, LogOut } from "lucide-react";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { Crest } from "@/components/council/Crest";
 import { Avatar } from "@/components/council/Avatar";
@@ -225,16 +225,26 @@ export default async function HomePage() {
 
 function AccountChip({ user }: { user: User }) {
   return (
-    <form action={signOutAction}>
-      <button
-        type="submit"
+    <div className="flex items-center gap-2">
+      <Link
+        href="/profile"
         className="inline-flex items-center gap-2 rounded-full border border-hairline bg-surface py-1.5 pl-1.5 pr-3 text-xs text-ink-soft shadow-sm hover:bg-parchment transition-colors"
+        title="Edit profile"
       >
         <Avatar src={user.avatarUrl} alt={user.displayName || user.email} size={22} />
         <span className="max-w-[160px] truncate font-body font-bold text-ink">
           {user.displayName || user.email}
         </span>
-      </button>
-    </form>
+      </Link>
+      <form action={signOutAction}>
+        <button
+          type="submit"
+          className="inline-flex items-center gap-1.5 rounded-full border border-hairline bg-surface px-3 py-1.5 text-xs text-ink-soft shadow-sm hover:bg-parchment transition-colors"
+        >
+          <LogOut className="h-3.5 w-3.5" />
+          <span className="hidden sm:inline">Sign out</span>
+        </button>
+      </form>
+    </div>
   );
 }

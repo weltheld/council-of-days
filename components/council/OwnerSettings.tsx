@@ -1,6 +1,7 @@
 "use client";
 
-import { X } from "lucide-react";
+import { useRef, useState } from "react";
+import { ImagePlus, Trash2, X } from "lucide-react";
 import type { BackgroundScene, Weekday } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -15,18 +16,21 @@ const WEEKDAYS: { label: string; value: Weekday }[] = [
 ];
 
 const BACKGROUNDS: { label: string; value: BackgroundScene; swatch: string }[] = [
-  { label: "Tavern", value: "tavern", swatch: "bg-[#3a2516]" },
+  { label: "Tavern", value: "tavern", swatch: "bg-[#E7DFCE]" },
   { label: "Parchment", value: "parchment", swatch: "bg-parchment" },
-  { label: "Wine", value: "wine", swatch: "bg-[#6B2230]" },
-  { label: "Forest", value: "forest", swatch: "bg-[#2f4a37]" },
+  { label: "Wine", value: "wine", swatch: "bg-[#ECDDDB]" },
+  { label: "Forest", value: "forest", swatch: "bg-[#E0E7DD]" },
 ];
 
 type Props = {
   dmName: string;
   viableWeekdays: Weekday[];
   background: BackgroundScene;
+  bannerUrl?: string;
   onToggleWeekday: (w: Weekday) => void;
   onChangeBackground: (bg: BackgroundScene) => void;
+  onUploadBanner: (file: File) => Promise<void>;
+  onRemoveBanner: () => void;
   onClose: () => void;
   /** If true, no body padding is applied (use when embedded in sheet that already pads). */
   embedded?: boolean;
@@ -36,12 +40,43 @@ export function OwnerSettings({
   dmName,
   viableWeekdays,
   background,
+  bannerUrl,
   onToggleWeekday,
   onChangeBackground,
+  onUploadBanner,
+  onRemoveBanner,
   onClose,
   embedded = false,
 }: Props) {
   const viable = new Set(viableWeekdays);
+  const fileInput = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
+  async function onPickBanner(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setUploadError("Please choose an image file.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setUploadError("Image must be 5 MB or smaller.");
+      return;
+    }
+    setUploadError(null);
+    setUploading(true);
+    try {
+      await onUploadBanner(file);
+    } catch (err) {
+      setUploadError(
+        err instanceof Error ? err.message : "Upload failed. Try again.",
+      );
+    } finally {
+      setUploading(false);
+    }
+  }
 
   return (
     <div className={cn("flex h-full flex-col", !embedded && "p-5")}>
@@ -83,6 +118,66 @@ export function OwnerSettings({
       <div className="my-4 h-px bg-hairline" />
 
       <section>
+        <p className="small-caps">Campaign Banner</p>
+        <div className="mt-2">
+          {bannerUrl ? (
+            <div className="overflow-hidden rounded-md border border-hairline">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={bannerUrl}
+                alt="Campaign banner"
+                className="h-24 w-full object-cover"
+              />
+            </div>
+          ) : (
+            <div className="flex h-24 items-center justify-center rounded-md border border-dashed border-hairline bg-surface/60 text-xs text-ink-soft">
+              No banner yet
+            </div>
+          )}
+
+          <input
+            ref={fileInput}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={onPickBanner}
+          />
+
+          <div className="mt-2 flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => fileInput.current?.click()}
+              disabled={uploading}
+              className="inline-flex items-center gap-1.5 rounded-md border border-hairline bg-surface/60 px-3 py-1.5 text-xs font-display tracking-wider uppercase text-ink hover:bg-parchment disabled:opacity-50"
+            >
+              <ImagePlus className="h-3.5 w-3.5" />
+              {uploading ? "Uploading..." : bannerUrl ? "Replace" : "Upload"}
+            </button>
+            {bannerUrl && (
+              <button
+                type="button"
+                onClick={onRemoveBanner}
+                disabled={uploading}
+                className="inline-flex items-center gap-1.5 rounded-md border border-hairline bg-surface/60 px-3 py-1.5 text-xs font-display tracking-wider uppercase text-vote-no hover:bg-parchment disabled:opacity-50"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                Remove
+              </button>
+            )}
+          </div>
+          {uploadError && (
+            <p className="mt-2 text-xs text-vote-no">{uploadError}</p>
+          )}
+          <p className="mt-2 text-xs text-ink-soft">
+            Shown across the top of the campaign calendar. Wide images
+            (about 1600&times;400) look best.
+          </p>
+        </div>
+      </section>
+
+      <div className="my-4 h-px bg-hairline" />
+
+      <section>
         <p className="small-caps">Group Background</p>
         <div className="mt-2 grid grid-cols-2 gap-2">
           {BACKGROUNDS.map(({ label, value, swatch }) => {
@@ -106,7 +201,7 @@ export function OwnerSettings({
           })}
         </div>
         <p className="mt-2 text-xs text-ink-soft">
-          Sets the parchment scene behind every player&apos;s calendar.
+          Sets the calm background tint behind every player&apos;s calendar.
         </p>
       </section>
     </div>

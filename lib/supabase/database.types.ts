@@ -27,6 +27,7 @@ export type CampaignRow = {
   phase: CampaignPhaseDb;
   viable_weekdays: number[];
   background: BackgroundSceneDb;
+  banner_url: string | null;
   created_at: string;
 };
 
@@ -93,6 +94,7 @@ export type Database = {
           phase?: CampaignPhaseDb;
           viable_weekdays?: number[];
           background?: BackgroundSceneDb;
+          banner_url?: string | null;
           created_at?: string;
         };
         Update: {
@@ -104,6 +106,7 @@ export type Database = {
           phase?: CampaignPhaseDb;
           viable_weekdays?: number[];
           background?: BackgroundSceneDb;
+          banner_url?: string | null;
           created_at?: string;
         };
         Relationships: [];

@@ -164,8 +164,43 @@ export function GroupViewClient(props: Props) {
     [supabase, group.id],
   );
 
+  const handleUploadBanner = useCallback(
+    async (file: File) => {
+      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+      const path = `${group.id}/banner-${Date.now()}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from("banners")
+        .upload(path, file, { upsert: true, cacheControl: "3600" });
+      if (uploadError) throw uploadError;
+
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("banners").getPublicUrl(path);
+
+      setGroup((g) => ({ ...g, bannerUrl: publicUrl }));
+      await supabase
+        .from("campaigns")
+        .update({ banner_url: publicUrl })
+        .eq("id", group.id);
+    },
+    [supabase, group.id],
+  );
+
+  const handleRemoveBanner = useCallback(async () => {
+    setGroup((g) => ({ ...g, bannerUrl: undefined }));
+    await supabase
+      .from("campaigns")
+      .update({ banner_url: null })
+      .eq("id", group.id);
+  }, [supabase, group.id]);
+
   return (
-    <div className="relative flex min-h-screen flex-col bg-parchment">
+    <div
+      className={cn(
+        "relative flex min-h-screen flex-col",
+        `bg-scene-${group.background}`,
+      )}
+    >
       <div className="relative flex min-h-screen flex-col">
         <TopBar
           groupName={group.name}
@@ -175,6 +210,17 @@ export function GroupViewClient(props: Props) {
           isCreator={isCreator}
           onOpenSettings={isCreator ? () => setSettingsOpen(true) : undefined}
         />
+
+        {group.bannerUrl && (
+          <div className="relative h-40 w-full overflow-hidden border-b border-hairline sm:h-52">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={group.bannerUrl}
+              alt={`${group.name} banner`}
+              className="h-full w-full object-cover"
+            />
+          </div>
+        )}
 
         <main
           className={cn(
@@ -220,8 +266,11 @@ export function GroupViewClient(props: Props) {
                 dmName={dm?.user.characterName ?? "The DM"}
                 viableWeekdays={group.viableWeekdays}
                 background={group.background}
+                bannerUrl={group.bannerUrl}
                 onToggleWeekday={handleToggleWeekday}
                 onChangeBackground={handleChangeBackground}
+                onUploadBanner={handleUploadBanner}
+                onRemoveBanner={handleRemoveBanner}
                 onClose={() => setSettingsOpen(false)}
               />
             </aside>
@@ -234,8 +283,11 @@ export function GroupViewClient(props: Props) {
             dmName={dm?.user.characterName ?? "The DM"}
             viableWeekdays={group.viableWeekdays}
             background={group.background}
+            bannerUrl={group.bannerUrl}
             onToggleWeekday={handleToggleWeekday}
             onChangeBackground={handleChangeBackground}
+            onUploadBanner={handleUploadBanner}
+            onRemoveBanner={handleRemoveBanner}
           />
         )}
       </div>
@@ -272,15 +324,21 @@ function MobileSettingsSheet({
   dmName,
   viableWeekdays,
   background,
+  bannerUrl,
   onToggleWeekday,
   onChangeBackground,
+  onUploadBanner,
+  onRemoveBanner,
 }: {
   onClose: () => void;
   dmName: string;
   viableWeekdays: Weekday[];
   background: BackgroundScene;
+  bannerUrl?: string;
   onToggleWeekday: (w: Weekday) => void;
   onChangeBackground: (bg: BackgroundScene) => void;
+  onUploadBanner: (file: File) => Promise<void>;
+  onRemoveBanner: () => void;
 }) {
   return (
     <div className="fixed inset-0 z-40 lg:hidden">
@@ -298,8 +356,11 @@ function MobileSettingsSheet({
             dmName={dmName}
             viableWeekdays={viableWeekdays}
             background={background}
+            bannerUrl={bannerUrl}
             onToggleWeekday={onToggleWeekday}
             onChangeBackground={onChangeBackground}
+            onUploadBanner={onUploadBanner}
+            onRemoveBanner={onRemoveBanner}
             onClose={onClose}
             embedded
           />

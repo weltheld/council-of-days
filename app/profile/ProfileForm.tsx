@@ -1,13 +1,15 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { ImagePlus } from "lucide-react";
 import { ParchmentCard } from "@/components/council/ParchmentCard";
 import { Crest } from "@/components/council/Crest";
 import { Avatar } from "@/components/council/Avatar";
 import { StageBackdrop } from "@/components/council/StageBackdrop";
 import { TextField } from "@/components/council/TextField";
 import { WaxButton } from "@/components/council/WaxButton";
+import { getBrowserSupabase } from "@/lib/supabase/client";
 import { updateProfileAction } from "./actions";
 
 const PORTRAITS = [
@@ -26,9 +28,11 @@ type Initial = {
 };
 
 export function ProfileForm({
+  userId,
   email,
   initial,
 }: {
+  userId: string;
   email: string;
   initial: Initial;
 }) {
@@ -40,7 +44,44 @@ export function ProfileForm({
   );
   const [showError, setShowError] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
   const [pending, startTransition] = useTransition();
+  const fileInput = useRef<HTMLInputElement>(null);
+
+  async function onPickPhoto(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setServerError("Please choose an image file.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setServerError("Image must be 5 MB or smaller.");
+      return;
+    }
+    setServerError(null);
+    setUploading(true);
+    try {
+      const supabase = getBrowserSupabase();
+      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+      const path = `${userId}/avatar-${Date.now()}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from("avatars")
+        .upload(path, file, { upsert: true, cacheControl: "3600" });
+      if (uploadError) throw uploadError;
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("avatars").getPublicUrl(path);
+      setAvatar(publicUrl);
+    } catch (err) {
+      setServerError(
+        err instanceof Error ? err.message : "Upload failed. Try again.",
+      );
+    } finally {
+      setUploading(false);
+    }
+  }
 
   function onSave(e: React.FormEvent) {
     e.preventDefault();
@@ -96,7 +137,24 @@ export function ProfileForm({
                 </button>
               ))}
             </div>
-            <p className="small-caps">Change portrait</p>
+
+            <input
+              ref={fileInput}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={onPickPhoto}
+            />
+            <button
+              type="button"
+              onClick={() => fileInput.current?.click()}
+              disabled={uploading}
+              className="inline-flex items-center gap-1.5 rounded-md border border-hairline bg-surface/60 px-3 py-1.5 text-xs font-display tracking-wider uppercase text-ink hover:bg-parchment disabled:opacity-50"
+            >
+              <ImagePlus className="h-3.5 w-3.5" />
+              {uploading ? "Uploading..." : "Upload a photo"}
+            </button>
+            <p className="small-caps">Choose a portrait or upload your own</p>
           </div>
 
           <TextField

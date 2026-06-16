@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, useTransition } from "react";
-import { LogOut, Settings2 } from "lucide-react";
+import { LogOut, Settings2, UserPen } from "lucide-react";
 import { Crest } from "./Crest";
 import { Avatar } from "./Avatar";
 import type { User } from "@/lib/types";
@@ -126,6 +126,15 @@ function SignedInAccount({ user, className }: { user: User; className?: string }
               </p>
               <p className="text-[11px] text-ink-soft truncate">{user.email}</p>
             </div>
+            <Link
+              href="/profile"
+              className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-ink hover:bg-parchment"
+              role="menuitem"
+              onClick={() => setOpen(false)}
+            >
+              <UserPen className="h-4 w-4 text-ink-soft" />
+              Edit profile
+            </Link>
             <button
               type="button"
               disabled={pending}

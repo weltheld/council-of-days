@@ -95,6 +95,7 @@ export default async function GroupPage({
     phase: campaign.phase,
     viableWeekdays: (campaign.viable_weekdays ?? []) as Weekday[],
     background: campaign.background as BackgroundScene,
+    bannerUrl: campaign.banner_url ?? undefined,
     createdAt: campaign.created_at,
   };
 

@@ -26,6 +26,7 @@ export type Group = {
   phase: CampaignPhase;
   viableWeekdays: Weekday[];
   background: BackgroundScene;
+  bannerUrl?: string;
   createdAt: string;
 };
 
