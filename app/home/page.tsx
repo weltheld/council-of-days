@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Crown, LogOut, Pencil } from "lucide-react";
+import { Crown, LogOut } from "lucide-react";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { Crest } from "@/components/council/Crest";
 import { Avatar } from "@/components/council/Avatar";
@@ -174,7 +174,7 @@ export default async function HomePage() {
         {/* Campaign List */}
         <section className="flex min-w-0 flex-1 flex-col gap-6">
           <h3 className="font-display text-lg font-bold text-ink">
-            Your Campaigns
+            Your Campaign Calendars
           </h3>
 
           {campaigns.length === 0 ? (
@@ -288,21 +288,11 @@ function CampaignCard({
           <h4 className="font-display text-lg font-bold leading-tight text-surface drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)]">
             {name}
           </h4>
-          <div className="pointer-events-auto flex shrink-0 items-center gap-2">
-            {isHost && (
-              <Link
-                href={`/g/${slug}?settings=open`}
-                className="inline-flex items-center gap-1 rounded-full border border-surface/40 bg-ink/40 px-2.5 py-1 text-[10px] font-body font-bold uppercase tracking-wide text-surface backdrop-blur-sm hover:bg-ink/60"
-              >
-                <Pencil className="h-3 w-3" /> Edit
-              </Link>
-            )}
-            {isHost && (
-              <span className="inline-flex items-center gap-1 rounded-full border border-dm-gold/60 bg-ink/40 px-2.5 py-1 text-[10px] font-body font-bold uppercase tracking-wide text-dm-gold backdrop-blur-sm">
-                <Crown className="h-3 w-3" /> Host
-              </span>
-            )}
-          </div>
+          {isHost && (
+            <span className="pointer-events-auto inline-flex shrink-0 items-center gap-1 rounded-full border border-dm-gold/60 bg-ink/40 px-2.5 py-1 text-[10px] font-body font-bold uppercase tracking-wide text-dm-gold backdrop-blur-sm">
+              <Crown className="h-3 w-3" /> Host
+            </span>
+          )}
         </div>
 
         <div className="flex items-center gap-2">
