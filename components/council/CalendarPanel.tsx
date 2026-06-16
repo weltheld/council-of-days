@@ -18,6 +18,7 @@ const WEEKDAYS = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 type Props = {
   dmUserIds: string[];
   myUserId: string | null;
+  nameByUserId: Record<string, string>;
   votes: Vote[];
   viableWeekdays: Weekday[];
   onCycleDay: (date: string, currentValue: VoteValue | undefined) => void;
@@ -33,6 +34,7 @@ type Props = {
 export function CalendarPanel({
   dmUserIds,
   myUserId,
+  nameByUserId,
   votes,
   viableWeekdays,
   onCycleDay,
@@ -143,6 +145,7 @@ export function CalendarPanel({
             votes={monthVotes[d.iso] ?? []}
             myUserId={myUserId}
             dmUserIds={dmUserIds}
+            nameByUserId={nameByUserId}
             isBestDay={bestDayIso === d.iso}
             isViableWeekday={viableSet.has(d.weekday as Weekday)}
             onCycle={(iso) => {

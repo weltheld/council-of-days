@@ -35,6 +35,12 @@ export function RosterPanel({ members, myUserId }: Props) {
                 <p className="font-display text-lg text-ink leading-tight truncate">
                   {dm.user.characterName || dm.user.displayName || dm.user.email}
                 </p>
+                {dm.user.displayName && (
+                  <p className="truncate text-[11px] text-ink-soft">
+                    {dm.user.displayName}
+                    {myUserId === dm.userId && " — you"}
+                  </p>
+                )}
                 <p className="mt-0.5 flex items-center gap-1 text-[11px] font-display tracking-wider uppercase text-dm-gold">
                   <VenetianMask className="h-3.5 w-3.5 shrink-0" /> Dungeon Master
                 </p>

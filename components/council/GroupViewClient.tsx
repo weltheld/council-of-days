@@ -66,6 +66,12 @@ export function GroupViewClient(props: Props) {
   useEffect(() => setMembers(props.members), [props.members]);
 
   const dmUserIds = members.filter((m) => m.isDm).map((m) => m.userId);
+  const nameByUserId = Object.fromEntries(
+    members.map((m) => [
+      m.userId,
+      m.user.characterName || m.user.displayName || m.user.email,
+    ]),
+  );
   const leadingVotes = bestDayIso
     ? votes.filter((v) => v.date === bestDayIso)
     : [];
@@ -319,6 +325,7 @@ export function GroupViewClient(props: Props) {
           <div className="flex flex-col">
             <CalendarPanel
               dmUserIds={dmUserIds}
+              nameByUserId={nameByUserId}
               myUserId={props.currentUser.id}
               votes={votes}
               viableWeekdays={group.viableWeekdays}

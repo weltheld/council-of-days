@@ -12,6 +12,8 @@ type Props = {
   dmUserIds: string[];
   isBestDay: boolean;
   isViableWeekday: boolean;
+  /** userId → character name, for the hover tooltip. */
+  nameByUserId: Record<string, string>;
   onCycle: (date: string) => void;
 };
 
@@ -29,8 +31,18 @@ export function DayCell({
   dmUserIds,
   isBestDay,
   isViableWeekday,
+  nameByUserId,
   onCycle,
 }: Props) {
+  const namesFor = (value: VoteValue) =>
+    votes
+      .filter((v) => v.value === value)
+      .map((v) => nameByUserId[v.userId] ?? "Someone");
+  const tooltipGroups: { label: string; names: string[] }[] = [
+    { label: "Yes", names: namesFor("yes") },
+    { label: "Maybe", names: namesFor("maybe") },
+    { label: "No", names: namesFor("no") },
+  ].filter((g) => g.names.length > 0);
   const myVote = myUserId
     ? (votes.find((v) => v.userId === myUserId)?.value as VoteValue | undefined)
     : undefined;
@@ -63,6 +75,7 @@ export function DayCell({
             : "bg-surface";
 
   return (
+    <div className="group relative h-full">
     <button
       type="button"
       onClick={() => interactive && onCycle(day.iso)}
@@ -140,6 +153,20 @@ export function DayCell({
         {day.inCurrentMonth && <VoteControl value={myVote} />}
       </div>
     </button>
+
+      {day.inCurrentMonth && tooltipGroups.length > 0 && (
+        <div className="pointer-events-none absolute bottom-full left-1/2 z-30 mb-1.5 hidden w-max max-w-[220px] -translate-x-1/2 rounded-md border border-ink/20 bg-ink px-3 py-2 text-left text-parchment shadow-lg group-hover:block">
+          {tooltipGroups.map((g) => (
+            <div key={g.label} className="text-[11px] leading-snug">
+              <span className="font-display tracking-wider uppercase text-dm-gold">
+                {g.label}:
+              </span>{" "}
+              {g.names.join(", ")}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
