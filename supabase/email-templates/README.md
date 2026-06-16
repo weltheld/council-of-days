@@ -24,8 +24,9 @@ Suggested **Subject** lines (set in the same dashboard screen):
 
 - The only template variable used is `{{ .ConfirmationURL }}` (the action link).
   Supabase substitutes it server-side.
-- The crest image is referenced by absolute URL
-  (`https://council-of-days-lovat.vercel.app/images/crest.png`). If the
-  production domain changes, update that URL in each template.
+- The logo (Gold Table Mark) is referenced by absolute URL
+  (`https://council-of-days-lovat.vercel.app/images/table-mark.png`) — a PNG
+  raster of the in-app SVG logo, since email clients don't reliably render
+  SVG. If the production domain changes, update that URL in each template.
 - Fonts (Cinzel / Alegreya Sans) are loaded via Google Fonts with serif /
   sans-serif fallbacks, since many email clients strip web fonts.
