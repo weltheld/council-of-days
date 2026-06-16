@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Crown, LogOut } from "lucide-react";
+import { Crown, LogOut, Pencil } from "lucide-react";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { Crest } from "@/components/council/Crest";
 import { Avatar } from "@/components/council/Avatar";
@@ -89,8 +89,6 @@ export default async function HomePage() {
   const playerCampaigns = campaigns.filter(
     (c) => roleById[c.id] !== "creator",
   );
-  const hostedCount = hostedCampaigns.length;
-  const playerCount = playerCampaigns.length;
 
   const currentUser: User = {
     id: user.id,
@@ -134,7 +132,7 @@ export default async function HomePage() {
               <h2 className="font-display text-2xl font-bold leading-snug text-ink sm:text-[30px]">
                 Welcome back, {displayFirst}
               </h2>
-              <p className="font-display text-sm leading-snug text-ink-soft sm:text-[15px]">
+              <p className="font-body text-sm leading-snug text-ink-soft sm:text-[15px]">
                 You signed in by email link. Choose a campaign to vote, or start
                 hosting a new table.
               </p>
@@ -170,18 +168,6 @@ export default async function HomePage() {
                 Host a new campaign
               </Link>
             )}
-
-            {/* Stats */}
-            <div className="flex flex-col gap-2">
-              <p className="font-body text-[11px] font-bold uppercase tracking-wider text-ink-soft">
-                Your Tables
-              </p>
-              <p className="font-body text-[15px] font-bold text-ink">
-                {campaigns.length} campaign{campaigns.length !== 1 ? "s" : ""} ·{" "}
-                {hostedCount} hosted · {playerCount} player invite
-                {playerCount !== 1 ? "s" : ""}
-              </p>
-            </div>
           </div>
         </aside>
 
@@ -260,9 +246,8 @@ function CampaignCard({
   const shown = members.slice(0, 6);
   const extra = members.length - shown.length;
   return (
-    <Link
-      href={`/g/${slug}`}
-      className="group relative block min-h-[150px] overflow-hidden rounded-xl border shadow-parchment transition-all hover:shadow-md"
+    <div
+      className="group relative min-h-[150px] overflow-hidden rounded-xl border shadow-parchment transition-all hover:shadow-md"
       style={
         isHost
           ? { borderColor: "#7A5A12", borderWidth: "1.5px" }
@@ -287,19 +272,37 @@ function CampaignCard({
           }}
         />
       )}
-      {/* Legibility overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-ink/85 via-ink/45 to-ink/15" />
+      {/* Legibility overlay — dark enough at the top so the name reads on
+          any banner. */}
+      <div className="absolute inset-0 bg-gradient-to-t from-ink/90 via-ink/60 to-ink/50" />
 
-      <div className="relative flex min-h-[150px] flex-col justify-between gap-3 p-[18px]">
+      {/* Full-card navigation target (sibling, not parent, of the edit link) */}
+      <Link
+        href={`/g/${slug}`}
+        aria-label={`Open ${name}`}
+        className="absolute inset-0 z-0"
+      />
+
+      <div className="pointer-events-none relative z-10 flex min-h-[150px] flex-col justify-between gap-3 p-[18px]">
         <div className="flex items-start justify-between gap-2">
-          <h4 className="font-display text-lg font-bold leading-tight text-surface drop-shadow">
+          <h4 className="font-display text-lg font-bold leading-tight text-surface drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)]">
             {name}
           </h4>
-          {isHost && (
-            <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-dm-gold/60 bg-ink/30 px-2.5 py-1 text-[10px] font-body font-bold uppercase tracking-wide text-dm-gold backdrop-blur-sm">
-              <Crown className="h-3 w-3" /> Host
-            </span>
-          )}
+          <div className="pointer-events-auto flex shrink-0 items-center gap-2">
+            {isHost && (
+              <Link
+                href={`/g/${slug}?settings=open`}
+                className="inline-flex items-center gap-1 rounded-full border border-surface/40 bg-ink/40 px-2.5 py-1 text-[10px] font-body font-bold uppercase tracking-wide text-surface backdrop-blur-sm hover:bg-ink/60"
+              >
+                <Pencil className="h-3 w-3" /> Edit
+              </Link>
+            )}
+            {isHost && (
+              <span className="inline-flex items-center gap-1 rounded-full border border-dm-gold/60 bg-ink/40 px-2.5 py-1 text-[10px] font-body font-bold uppercase tracking-wide text-dm-gold backdrop-blur-sm">
+                <Crown className="h-3 w-3" /> Host
+              </span>
+            )}
+          </div>
         </div>
 
         <div className="flex items-center gap-2">
@@ -321,7 +324,7 @@ function CampaignCard({
           )}
         </div>
       </div>
-    </Link>
+    </div>
   );
 }
 

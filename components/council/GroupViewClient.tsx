@@ -1,13 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { TopBar } from "@/components/council/TopBar";
 import { RosterPanel } from "@/components/council/RosterPanel";
 import { CalendarPanel } from "@/components/council/CalendarPanel";
 import { OwnerSettings } from "@/components/council/OwnerSettings";
 import { BestDaySummary } from "@/components/council/BestDaySummary";
-import { defaultMonth, shortMonthLabel } from "@/lib/calendar";
 import type {
   BackgroundScene,
   Group,
@@ -31,6 +30,7 @@ type Props = {
 
 export function GroupViewClient(props: Props) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [group, setGroup] = useState(props.group);
   const [votes, setVotes] = useState<Vote[]>(props.votes);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -43,8 +43,14 @@ export function GroupViewClient(props: Props) {
 
   const supabase = getBrowserSupabase();
   const isCreator = currentUserMatches(props.currentUser.id, group.creatorId);
-  const { year, monthIndex } = defaultMonth();
-  const subtitle = `Council of Days \u00b7 ${props.members.length} members \u00b7 ${shortMonthLabel(year, monthIndex)}`;
+
+  // Deep link from the home card's "Edit" button opens Poll Settings.
+  useEffect(() => {
+    if (isCreator && searchParams.get("settings") === "open") {
+      setSettingsOpen(true);
+    }
+  }, [isCreator, searchParams]);
+  const subtitle = "Council of Days";
 
   const dm = props.members.find((m) => m.userId === group.dmId);
   const leadingVotes = bestDayIso

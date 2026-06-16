@@ -2,12 +2,12 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ParchmentCard } from "@/components/council/ParchmentCard";
 import { Crest } from "@/components/council/Crest";
-import { StageBackdrop } from "@/components/council/StageBackdrop";
 import { TextField } from "@/components/council/TextField";
 import { WaxButton } from "@/components/council/WaxButton";
 import { Avatar } from "@/components/council/Avatar";
+import type { BackgroundScene } from "@/lib/types";
+import { cn } from "@/lib/utils";
 import { cancelInviteAction, sendInviteAction } from "./actions";
 
 type Member = {
@@ -29,11 +29,13 @@ type Invitation = {
 export function InvitePageClient({
   slug,
   name,
+  background,
   members,
   invitations,
 }: {
   slug: string;
   name: string;
+  background: BackgroundScene;
   members: Member[];
   invitations: Invitation[];
 }) {
@@ -86,13 +88,20 @@ export function InvitePageClient({
   const pendingInvites = invitations.filter((i) => i.status !== "joined");
 
   return (
-    <StageBackdrop>
-      <ParchmentCard className="w-full max-w-[560px] p-8 sm:p-10">
+    <div
+      className={cn(
+        "min-h-screen w-full px-4 py-10 sm:px-8",
+        `bg-scene-${background}`,
+      )}
+    >
+      <div className="mx-auto w-full max-w-[560px] rounded-xl border border-hairline bg-surface p-8 shadow-parchment sm:p-10">
         <header className="flex flex-col items-center text-center gap-3">
           <Crest size={56} />
           <p className="small-caps">Council of Days</p>
           <h1 className="font-display text-3xl text-ink">Summon your party</h1>
-          <p className="text-ink-soft italic">{name} awaits its adventurers.</p>
+          <p className="font-body text-ink-soft italic">
+            {name} awaits its adventurers.
+          </p>
         </header>
 
         <section className="mt-7 space-y-2">
@@ -216,7 +225,7 @@ export function InvitePageClient({
             Enter the company &rarr;
           </WaxButton>
         </div>
-      </ParchmentCard>
-    </StageBackdrop>
+      </div>
+    </div>
   );
 }

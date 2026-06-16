@@ -10,6 +10,7 @@ import { StageBackdrop } from "@/components/council/StageBackdrop";
 import { TextField } from "@/components/council/TextField";
 import { WaxButton } from "@/components/council/WaxButton";
 import { getBrowserSupabase } from "@/lib/supabase/client";
+import { AvatarCropper } from "@/components/council/AvatarCropper";
 import { updateProfileAction } from "./actions";
 
 const PORTRAITS = [
@@ -45,10 +46,11 @@ export function ProfileForm({
   const [showError, setShowError] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [cropFile, setCropFile] = useState<File | null>(null);
   const [pending, startTransition] = useTransition();
   const fileInput = useRef<HTMLInputElement>(null);
 
-  async function onPickPhoto(e: React.ChangeEvent<HTMLInputElement>) {
+  function onPickPhoto(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
@@ -61,19 +63,27 @@ export function ProfileForm({
       return;
     }
     setServerError(null);
+    setCropFile(file);
+  }
+
+  async function uploadCropped(blob: Blob) {
     setUploading(true);
     try {
       const supabase = getBrowserSupabase();
-      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
-      const path = `${userId}/avatar-${Date.now()}.${ext}`;
+      const path = `${userId}/avatar-${Date.now()}.jpg`;
       const { error: uploadError } = await supabase.storage
         .from("avatars")
-        .upload(path, file, { upsert: true, cacheControl: "3600" });
+        .upload(path, blob, {
+          upsert: true,
+          cacheControl: "3600",
+          contentType: "image/jpeg",
+        });
       if (uploadError) throw uploadError;
       const {
         data: { publicUrl },
       } = supabase.storage.from("avatars").getPublicUrl(path);
       setAvatar(publicUrl);
+      setCropFile(null);
     } catch (err) {
       setServerError(
         err instanceof Error ? err.message : "Upload failed. Try again.",
@@ -107,6 +117,13 @@ export function ProfileForm({
 
   return (
     <StageBackdrop>
+      {cropFile && (
+        <AvatarCropper
+          file={cropFile}
+          onCancel={() => setCropFile(null)}
+          onConfirm={uploadCropped}
+        />
+      )}
       <ParchmentCard className="w-full max-w-[560px] p-7 sm:p-10">
         <header className="flex flex-col items-center text-center gap-3">
           <Crest size={56} />

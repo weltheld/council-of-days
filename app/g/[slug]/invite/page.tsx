@@ -16,7 +16,7 @@ export default async function InvitePage({
 
   const { data: campaign } = await supabase
     .from("campaigns")
-    .select("id, slug, name, creator_id")
+    .select("id, slug, name, creator_id, background")
     .eq("slug", slug)
     .maybeSingle();
   if (!campaign) notFound();
@@ -55,6 +55,7 @@ export default async function InvitePage({
     <InvitePageClient
       slug={campaign.slug}
       name={campaign.name}
+      background={campaign.background}
       members={(members ?? []).map((m) => {
         const p = profileById.get(m.user_id);
         return {
