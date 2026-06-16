@@ -51,7 +51,6 @@ export function GroupViewClient(props: Props) {
       setSettingsOpen(true);
     }
   }, [isCreator, searchParams]);
-  const subtitle = "";
 
   const dm = props.members.find((m) => m.userId === group.dmId);
   const leadingVotes = bestDayIso
@@ -199,21 +198,30 @@ export function GroupViewClient(props: Props) {
     >
       <div className="relative flex min-h-screen flex-col">
         <TopBar
-          groupName={group.name}
-          subtitle={subtitle}
           currentUser={props.currentUser}
           roleLabel={isCreator ? "Creator" : "Player"}
           onOpenSettings={isCreator ? () => setSettingsOpen(true) : undefined}
         />
 
-        {group.bannerUrl && (
+        {group.bannerUrl ? (
           <div className="relative h-40 w-full overflow-hidden border-b border-hairline sm:h-52">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={group.bannerUrl}
-              alt={`${group.name} banner`}
+              alt=""
               className="h-full w-full object-cover"
             />
+            {/* Scrim guarantees the title reads over any banner colour. */}
+            <div className="absolute inset-0 bg-gradient-to-t from-ink/85 via-ink/35 to-ink/10" />
+            <h1 className="absolute inset-x-0 bottom-0 truncate px-4 py-3 font-display text-2xl font-bold text-surface drop-shadow-[0_2px_6px_rgba(0,0,0,0.85)] sm:px-8 sm:text-4xl">
+              {group.name}
+            </h1>
+          </div>
+        ) : (
+          <div className="border-b border-hairline px-4 py-4 sm:px-8">
+            <h1 className="truncate font-display text-2xl font-bold text-ink sm:text-4xl">
+              {group.name}
+            </h1>
           </div>
         )}
 

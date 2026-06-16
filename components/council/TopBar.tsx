@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, useTransition } from "react";
-import { Home, LogOut, Settings2, UserPen } from "lucide-react";
+import { LogOut, Settings2, UserPen } from "lucide-react";
 import { Crest } from "./Crest";
 import { Avatar } from "./Avatar";
 import type { User } from "@/lib/types";
@@ -10,8 +10,6 @@ import { cn } from "@/lib/utils";
 import { signOutAction } from "@/app/auth/actions";
 
 type Props = {
-  groupName: string;
-  subtitle: string;
   currentUser?: User;
   /** "Creator" | "Player" shown under the account email. */
   roleLabel?: string;
@@ -19,35 +17,22 @@ type Props = {
   onOpenSettings?: () => void;
 };
 
-export function TopBar({
-  groupName,
-  subtitle,
-  currentUser,
-  roleLabel,
-  onOpenSettings,
-}: Props) {
+export function TopBar({ currentUser, roleLabel, onOpenSettings }: Props) {
   return (
     <header className="border-b border-ink/15 backdrop-blur-[1px]">
       <div className="mx-auto flex max-w-[1440px] items-center gap-3 px-4 py-3 sm:px-8 sm:py-4">
         <Link
           href="/home"
-          aria-label="Back to your campaign calendars"
-          title="Home"
-          className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-hairline bg-surface text-ink-soft shadow-sm hover:bg-parchment hover:text-ink"
+          aria-label="Council of Days — your campaign calendars"
+          className="flex min-w-0 flex-1 items-center gap-2.5"
         >
-          <Home className="h-4 w-4" />
+          <Crest size={40} />
+          <div className="min-w-0 leading-tight">
+            <div className="truncate font-display text-base font-bold text-ink sm:text-xl">
+              Council of Days
+            </div>
+          </div>
         </Link>
-        <Crest size={36} className="hidden sm:inline-flex" />
-        <div className="min-w-0 flex-1">
-          <h1 className="truncate font-display text-base sm:text-2xl text-ink leading-tight">
-            {groupName}
-          </h1>
-          {subtitle && (
-            <p className="mt-0.5 truncate text-[11px] sm:text-sm text-ink-soft">
-              {subtitle}
-            </p>
-          )}
-        </div>
 
         {currentUser && (
           <SignedInAccount
