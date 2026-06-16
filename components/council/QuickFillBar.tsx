@@ -29,6 +29,7 @@ export function QuickFillBar({
   className,
 }: Props) {
   const [selected, setSelected] = useState<Set<Weekday>>(new Set());
+  const [confirmReset, setConfirmReset] = useState(false);
   const viable = new Set(viableWeekdays);
 
   function toggle(w: Weekday) {
@@ -100,13 +101,52 @@ export function QuickFillBar({
 
       <button
         type="button"
-        onClick={onReset}
+        onClick={() => setConfirmReset(true)}
         className="inline-flex h-7 items-center gap-1.5 rounded-md border border-hairline px-2 text-xs font-display tracking-wider uppercase text-ink-soft transition hover:bg-parchment hover:text-ink"
         title="Clear your votes for this month"
       >
         <RotateCcw className="h-3.5 w-3.5" />
         Reset
       </button>
+
+      {confirmReset && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <button
+            aria-label="Cancel"
+            className="absolute inset-0 bg-ink/50 backdrop-blur-sm"
+            onClick={() => setConfirmReset(false)}
+          />
+          <div className="relative w-full max-w-sm rounded-xl border border-hairline bg-surface p-6 shadow-parchment">
+            <h2 className="text-center font-display text-xl text-ink">
+              Reset this month?
+            </h2>
+            <p className="mt-2 text-center font-body text-sm text-ink-soft">
+              This clears all of your votes for the month currently shown. This
+              can&apos;t be undone.
+            </p>
+            <div className="mt-5 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setConfirmReset(false)}
+                className="inline-flex h-9 items-center rounded-md border border-hairline bg-surface px-4 text-sm font-display tracking-wider uppercase text-ink-soft hover:bg-parchment hover:text-ink"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setConfirmReset(false);
+                  onReset();
+                }}
+                className="inline-flex h-9 items-center gap-1.5 rounded-md bg-wine px-4 text-sm font-display tracking-wider uppercase text-parchment hover:brightness-110"
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+                Reset month
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
