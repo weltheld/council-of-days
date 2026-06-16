@@ -22,6 +22,8 @@ type Props = {
   viableWeekdays: Weekday[];
   onCycleDay: (date: string, currentValue: VoteValue | undefined) => void;
   onBulkFill: (weekdays: Weekday[], value: VoteValue, isoDates: string[]) => void;
+  /** Clear the current user's votes for every day shown in the active month. */
+  onReset: (isoDates: string[]) => void;
   /** Optional callback so the parent can also know the best day (for the roster). */
   onBestDayChange?: (iso: string | null) => void;
   onMonthChange?: (year: number, monthIndex: number) => void;
@@ -35,6 +37,7 @@ export function CalendarPanel({
   viableWeekdays,
   onCycleDay,
   onBulkFill,
+  onReset,
   onBestDayChange,
   onMonthChange,
   initialMonth,
@@ -119,6 +122,11 @@ export function CalendarPanel({
       <QuickFillBar
         viableWeekdays={viableWeekdays}
         onApply={bulkApply}
+        onReset={() =>
+          onReset(
+            days.filter((d) => d.inCurrentMonth).map((d) => d.iso),
+          )
+        }
       />
 
       <div className="grid grid-cols-7 gap-1 text-center small-caps">

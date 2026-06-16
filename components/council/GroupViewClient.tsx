@@ -20,7 +20,10 @@ import type {
 import { cn } from "@/lib/utils";
 import { getBrowserSupabase } from "@/lib/supabase/client";
 import { uploadBannerAction } from "@/app/g/[slug]/bannerActions";
-import { setMemberDmAction } from "@/app/g/[slug]/roleActions";
+import {
+  removeMemberAction,
+  setMemberDmAction,
+} from "@/app/g/[slug]/roleActions";
 
 type MemberWithUser = Member & { user: User };
 
@@ -150,6 +153,26 @@ export function GroupViewClient(props: Props) {
     [supabase, group.id, props.currentUser.id],
   );
 
+  const handleResetMonth = useCallback(
+    async (isoDates: string[]) => {
+      if (isoDates.length === 0) return;
+      const dateSet = new Set(isoDates);
+      setVotes((prev) =>
+        prev.filter(
+          (v) =>
+            !(v.userId === props.currentUser.id && dateSet.has(v.date)),
+        ),
+      );
+      await supabase
+        .from("votes")
+        .delete()
+        .eq("campaign_id", group.id)
+        .eq("user_id", props.currentUser.id)
+        .in("date", isoDates);
+    },
+    [supabase, group.id, props.currentUser.id],
+  );
+
   const handleToggleWeekday = useCallback(
     async (w: Weekday) => {
       const next = group.viableWeekdays.includes(w)
@@ -208,6 +231,20 @@ export function GroupViewClient(props: Props) {
       }
     },
     [group.id],
+  );
+
+  const handleRemoveMember = useCallback(
+    async (userId: string) => {
+      const prev = members;
+      setMembers((cur) => cur.filter((m) => m.userId !== userId));
+      const result = await removeMemberAction(group.id, userId);
+      if (!result.ok) {
+        setMembers(prev); // revert
+      } else {
+        router.refresh();
+      }
+    },
+    [group.id, members, router],
   );
 
   return (
@@ -277,12 +314,7 @@ export function GroupViewClient(props: Props) {
           )}
         >
           <div className="border-b border-hairline/70 lg:border-b-0 lg:border-r">
-            <RosterPanel
-              members={members}
-              myUserId={props.currentUser.id}
-              leadingDayIso={bestDayIso}
-              votes={votes}
-            />
+            <RosterPanel members={members} myUserId={props.currentUser.id} />
           </div>
           <div className="flex flex-col">
             <CalendarPanel
@@ -294,6 +326,7 @@ export function GroupViewClient(props: Props) {
               onBulkFill={(w, value, isoDates) =>
                 handleBulkFill(w, value, isoDates)
               }
+              onReset={handleResetMonth}
               onBestDayChange={setBestDayIso}
             />
             <div className="px-4 pb-4 sm:px-5 lg:hidden">
@@ -317,6 +350,7 @@ export function GroupViewClient(props: Props) {
                 onUploadBanner={handleUploadBanner}
                 onRemoveBanner={handleRemoveBanner}
                 onSetMemberDm={handleSetMemberDm}
+                onRemoveMember={handleRemoveMember}
                 onClose={() => setSettingsOpen(false)}
               />
             </aside>
@@ -336,6 +370,7 @@ export function GroupViewClient(props: Props) {
             onUploadBanner={handleUploadBanner}
             onRemoveBanner={handleRemoveBanner}
             onSetMemberDm={handleSetMemberDm}
+            onRemoveMember={handleRemoveMember}
           />
         )}
       </div>
@@ -379,6 +414,7 @@ function MobileSettingsSheet({
   onUploadBanner,
   onRemoveBanner,
   onSetMemberDm,
+  onRemoveMember,
 }: {
   onClose: () => void;
   members: MemberWithUser[];
@@ -391,6 +427,7 @@ function MobileSettingsSheet({
   onUploadBanner: (blob: Blob) => Promise<void>;
   onRemoveBanner: () => void;
   onSetMemberDm: (userId: string, isDm: boolean) => void;
+  onRemoveMember: (userId: string) => void;
 }) {
   return (
     <div className="fixed inset-0 z-40 lg:hidden">
@@ -415,6 +452,7 @@ function MobileSettingsSheet({
             onUploadBanner={onUploadBanner}
             onRemoveBanner={onRemoveBanner}
             onSetMemberDm={onSetMemberDm}
+            onRemoveMember={onRemoveMember}
             onClose={onClose}
             embedded
           />

@@ -44,7 +44,8 @@ export function DayCell({
   const maybeCount = votes.filter((v) => v.value === "maybe").length;
   const noCount = votes.filter((v) => v.value === "no").length;
 
-  const interactive = day.inCurrentMonth && isViableWeekday && !!myUserId;
+  const interactive =
+    day.inCurrentMonth && isViableWeekday && !day.isPast && !!myUserId;
 
   // Tinted background derived from user's own vote. Solid (opaque) beige
   // blends so the tile keeps its parchment color and just gains a subtle
@@ -71,6 +72,7 @@ export function DayCell({
         bgTint,
         day.inCurrentMonth ? "border-hairline/70" : "border-transparent opacity-40",
         !isViableWeekday && day.inCurrentMonth && "cursor-not-allowed",
+        day.isPast && day.inCurrentMonth && "cursor-not-allowed opacity-55",
         interactive && "hover:border-ink/40 cursor-pointer",
         isBestDay && "border-dm-gold/80 ring-1 ring-dm-gold/40",
       )}

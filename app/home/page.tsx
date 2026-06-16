@@ -144,84 +144,44 @@ export default async function HomePage() {
       />
 
       {pendingInvites.length > 0 && (
-        <div className="relative z-10 mx-auto w-full max-w-[1440px] px-4 pt-7 sm:px-9 sm:pt-[30px]">
+        <div className="relative z-10 mx-auto w-full max-w-[760px] px-4 pt-7 sm:px-9 sm:pt-[30px]">
           <PendingInvites invites={pendingInvites} />
         </div>
       )}
 
       {/* Body */}
-      <main className="relative z-10 mx-auto flex max-w-[1440px] flex-col gap-7 px-4 pb-10 pt-7 sm:flex-row sm:items-start sm:gap-7 sm:px-9 sm:pb-9 sm:pt-[30px]">
-        {/* Welcome Column */}
-        <aside className="w-full shrink-0 sm:w-[376px]">
-          <div className="flex flex-col gap-[18px] rounded-xl border border-hairline bg-surface px-6 py-6 shadow-parchment">
-            <div className="flex flex-col gap-2">
-              <h2 className="font-display text-2xl font-bold leading-snug text-ink sm:text-[30px]">
-                Welcome back, {displayFirst}
-              </h2>
-              <p className="font-body text-sm leading-snug text-ink-soft sm:text-[15px]">
-                You signed in by email link. Choose a campaign to vote, or start
-                hosting a new table.
-              </p>
-            </div>
+      <main className="relative z-10 mx-auto w-full max-w-[760px] px-4 pb-12 pt-7 sm:px-9 sm:pt-[30px]">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+          <h2 className="font-display text-2xl font-bold leading-snug text-ink sm:text-[30px]">
+            Welcome back, {displayFirst}!
+          </h2>
+          <Link
+            href="/new"
+            className="inline-flex items-center gap-2 rounded-md border border-hairline bg-surface/60 px-3 py-2 font-display text-xs font-semibold tracking-wider uppercase text-ink-soft hover:bg-parchment hover:text-ink transition-colors"
+          >
+            <Crown className="h-3.5 w-3.5 text-dm-gold" />
+            Host a new campaign
+          </Link>
+        </div>
 
-            {/* Host CTA — prominent only when the user has no campaigns yet. */}
-            {campaigns.length === 0 ? (
-              <div className="flex flex-col gap-3 rounded-xl bg-wine px-[18px] py-[18px] shadow-wine">
-                <div className="flex items-center gap-2">
-                  <Crown className="h-6 w-6 text-dm-gold" />
-                  <p className="font-display text-xl font-bold leading-tight text-surface">
-                    Host your own campaign
-                  </p>
-                </div>
-                <p className="font-body text-[13.5px] leading-snug text-[#F3E4C3]">
-                  Create a new campaign-poll, invite your table, then open the
-                  calendar when ready.
-                </p>
-                <Link
-                  href="/new"
-                  className="block rounded-[6px] bg-wine border border-[#B68A2E66] text-center font-display text-sm font-semibold tracking-wide text-[#F6EFE0] py-[13px] px-7 shadow-sm hover:brightness-110 transition-all"
-                  style={{ background: "rgba(90,30,40,0.85)" }}
-                >
-                  HOST A CAMPAIGN
-                </Link>
-              </div>
-            ) : (
-              <Link
-                href="/new"
-                className="inline-flex items-center gap-2 self-start rounded-md border border-hairline bg-surface/60 px-3 py-2 font-display text-xs font-semibold tracking-wider uppercase text-ink-soft hover:bg-parchment hover:text-ink transition-colors"
-              >
-                <Crown className="h-3.5 w-3.5 text-dm-gold" />
-                Host a new campaign
-              </Link>
-            )}
+        {campaigns.length === 0 ? (
+          <p className="font-body text-sm text-ink-soft italic">
+            No campaign calendars yet — host one or wait for an invite.
+          </p>
+        ) : (
+          <div className="flex flex-col gap-4">
+            {[...hostedCampaigns, ...playerCampaigns].map((c) => (
+              <CampaignCard
+                key={c.id}
+                slug={c.slug}
+                name={c.name}
+                bannerUrl={c.banner_url}
+                isHost={roleById[c.id] === "creator"}
+                members={membersByCampaign[c.id] ?? []}
+              />
+            ))}
           </div>
-        </aside>
-
-        {/* Campaign List */}
-        <section className="flex min-w-0 flex-1 flex-col gap-6">
-          <h3 className="font-display text-lg font-bold text-ink">
-            Your Campaign Calendars
-          </h3>
-
-          {campaigns.length === 0 ? (
-            <p className="font-body text-sm text-ink-soft italic">
-              No campaigns yet — host one or wait for an invite.
-            </p>
-          ) : (
-            <div className="flex flex-col gap-4">
-              {[...hostedCampaigns, ...playerCampaigns].map((c) => (
-                <CampaignCard
-                  key={c.id}
-                  slug={c.slug}
-                  name={c.name}
-                  bannerUrl={c.banner_url}
-                  isHost={roleById[c.id] === "creator"}
-                  members={membersByCampaign[c.id] ?? []}
-                />
-              ))}
-            </div>
-          )}
-        </section>
+        )}
       </main>
     </div>
   );

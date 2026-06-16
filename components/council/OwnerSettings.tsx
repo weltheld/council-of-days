@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Crown, ImagePlus, Trash2, X } from "lucide-react";
+import { ImagePlus, Pencil, Swords, Trash2, VenetianMask, X } from "lucide-react";
 import type { BackgroundScene, Member, User, Weekday } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Avatar } from "./Avatar";
@@ -37,6 +37,7 @@ type Props = {
   onUploadBanner: (blob: Blob) => Promise<void>;
   onRemoveBanner: () => void;
   onSetMemberDm: (userId: string, isDm: boolean) => void;
+  onRemoveMember: (userId: string) => void;
   onClose: () => void;
   /** If true, no body padding is applied (use when embedded in sheet that already pads). */
   embedded?: boolean;
@@ -53,6 +54,7 @@ export function OwnerSettings({
   onUploadBanner,
   onRemoveBanner,
   onSetMemberDm,
+  onRemoveMember,
   onClose,
   embedded = false,
 }: Props) {
@@ -109,9 +111,6 @@ export function OwnerSettings({
       <div className="flex items-start justify-between">
         <div>
           <h2 className="font-display text-xl text-ink">Poll Settings</h2>
-          <p className="mt-1 text-xs text-ink-soft">
-            As the creator, you control roles, weekdays, banner and background.
-          </p>
         </div>
         <button
           onClick={onClose}
@@ -126,56 +125,16 @@ export function OwnerSettings({
 
       <section>
         <p className="small-caps">Roles</p>
-        <p className="mt-1 text-xs text-ink-soft">
-          Dungeon Masters and players. There can be more than one of each.
-        </p>
         <ul className="mt-2 space-y-1.5">
-          {members.map((m) => {
-            const name =
-              m.user.characterName || m.user.displayName || m.user.email;
-            return (
-              <li
-                key={m.userId}
-                className="flex items-center gap-2.5 rounded-md border border-hairline/60 bg-surface/60 px-2.5 py-2"
-              >
-                <Avatar src={m.user.avatarUrl} alt={name} size={30} />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm text-ink">{name}</p>
-                  {m.userId === creatorId && (
-                    <p className="text-[10px] font-display uppercase tracking-wider text-ink-soft">
-                      Creator
-                    </p>
-                  )}
-                </div>
-                <div className="flex overflow-hidden rounded-full border border-hairline">
-                  <button
-                    type="button"
-                    onClick={() => onSetMemberDm(m.userId, true)}
-                    className={cn(
-                      "inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-display uppercase tracking-wider transition",
-                      m.isDm
-                        ? "bg-dm-gold/20 text-dm-gold"
-                        : "text-ink-soft hover:bg-parchment",
-                    )}
-                  >
-                    <Crown className="h-3 w-3" /> DM
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => onSetMemberDm(m.userId, false)}
-                    className={cn(
-                      "px-2.5 py-1 text-[11px] font-display uppercase tracking-wider transition",
-                      !m.isDm
-                        ? "bg-ink/10 text-ink"
-                        : "text-ink-soft hover:bg-parchment",
-                    )}
-                  >
-                    Player
-                  </button>
-                </div>
-              </li>
-            );
-          })}
+          {members.map((m) => (
+            <MemberRoleRow
+              key={m.userId}
+              member={m}
+              isCreator={m.userId === creatorId}
+              onSetMemberDm={onSetMemberDm}
+              onRemoveMember={onRemoveMember}
+            />
+          ))}
         </ul>
       </section>
 
@@ -288,6 +247,94 @@ export function OwnerSettings({
         </p>
       </section>
     </div>
+  );
+}
+
+function MemberRoleRow({
+  member,
+  isCreator,
+  onSetMemberDm,
+  onRemoveMember,
+}: {
+  member: MemberWithUser;
+  isCreator: boolean;
+  onSetMemberDm: (userId: string, isDm: boolean) => void;
+  onRemoveMember: (userId: string) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const name =
+    member.user.characterName || member.user.displayName || member.user.email;
+  const RoleIcon = member.isDm ? VenetianMask : Swords;
+
+  return (
+    <li className="rounded-md border border-hairline/60 bg-surface/60 px-2.5 py-2">
+      <div className="flex items-center gap-2.5">
+        <Avatar src={member.user.avatarUrl} alt={name} size={30} />
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm text-ink">{name}</p>
+          <p className="flex items-center gap-1 text-[10px] font-display uppercase tracking-wider text-ink-soft">
+            <RoleIcon className="h-3 w-3" />
+            {member.isDm ? "Dungeon Master" : "Player"}
+            {isCreator && " · Creator"}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setEditing((v) => !v)}
+          className="inline-flex h-7 w-7 items-center justify-center rounded-md text-ink-soft hover:bg-parchment hover:text-ink"
+          aria-label={`Edit ${name}'s role`}
+        >
+          <Pencil className="h-3.5 w-3.5" />
+        </button>
+      </div>
+
+      {editing && (
+        <div className="mt-2 flex flex-wrap items-center gap-1.5 border-t border-hairline/60 pt-2">
+          <button
+            type="button"
+            onClick={() => {
+              onSetMemberDm(member.userId, true);
+              setEditing(false);
+            }}
+            className={cn(
+              "inline-flex items-center gap-1 rounded-md border px-2.5 py-1 text-[11px] font-display uppercase tracking-wider transition",
+              member.isDm
+                ? "border-dm-gold bg-dm-gold/15 text-dm-gold"
+                : "border-hairline text-ink-soft hover:bg-parchment",
+            )}
+          >
+            <VenetianMask className="h-3 w-3" /> DM
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              onSetMemberDm(member.userId, false);
+              setEditing(false);
+            }}
+            className={cn(
+              "inline-flex items-center gap-1 rounded-md border px-2.5 py-1 text-[11px] font-display uppercase tracking-wider transition",
+              !member.isDm
+                ? "border-ink/40 bg-ink/10 text-ink"
+                : "border-hairline text-ink-soft hover:bg-parchment",
+            )}
+          >
+            <Swords className="h-3 w-3" /> Player
+          </button>
+          {!isCreator && (
+            <button
+              type="button"
+              onClick={() => {
+                onRemoveMember(member.userId);
+                setEditing(false);
+              }}
+              className="ml-auto inline-flex items-center gap-1 rounded-md border border-hairline px-2.5 py-1 text-[11px] font-display uppercase tracking-wider text-vote-no hover:bg-parchment"
+            >
+              <Trash2 className="h-3 w-3" /> Remove
+            </button>
+          )}
+        </div>
+      )}
+    </li>
   );
 }
 

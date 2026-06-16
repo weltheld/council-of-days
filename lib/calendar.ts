@@ -13,6 +13,7 @@ export type CalendarDay = {
   weekday: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   inCurrentMonth: boolean;
   isToday: boolean;
+  isPast: boolean;
 };
 
 const TODAY = (() => {
@@ -41,6 +42,7 @@ export function buildMonthGrid(year: number, monthIndex: number): CalendarDay[] 
       inCurrentMonth:
         cursor.getMonth() === monthIndex && cursor.getFullYear() === year,
       isToday: isoDate(cursor) === todayIso,
+      isPast: isoDate(cursor) < todayIso,
     });
     if (days.length >= 35 && cursor >= last) break;
     cursor = addDays(cursor, 1);

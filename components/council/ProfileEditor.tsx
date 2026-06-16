@@ -15,8 +15,6 @@ type Initial = {
   avatar_url: string | null;
 };
 
-const FALLBACK_AVATAR = "/images/avatar-aldous.png";
-
 /**
  * Shared profile editor (portrait upload + names). Used both for first-time
  * onboarding (navigates onward) and the in-app edit dialog (closes on save).
@@ -33,9 +31,7 @@ export function ProfileEditor({
   const router = useRouter();
   const [character, setCharacter] = useState(initial.character_name);
   const [display, setDisplay] = useState(initial.display_name);
-  const [avatar, setAvatar] = useState<string>(
-    initial.avatar_url ?? FALLBACK_AVATAR,
-  );
+  const [avatar, setAvatar] = useState<string | null>(initial.avatar_url);
   const [showError, setShowError] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -119,7 +115,7 @@ export function ProfileEditor({
       )}
 
       <div className="flex flex-col items-center gap-3">
-        <Avatar src={avatar} alt={character || "Adventurer"} size={96} ring="gold" />
+        <Avatar src={avatar ?? undefined} alt={character || "Adventurer"} size={96} ring="gold" />
         <input
           ref={fileInput}
           type="file"

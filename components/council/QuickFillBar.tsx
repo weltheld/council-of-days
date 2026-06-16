@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Wand2 } from "lucide-react";
+import { RotateCcw, Wand2 } from "lucide-react";
 import type { VoteValue, Weekday } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -18,10 +18,16 @@ const DAY_CHIPS: { label: string; value: Weekday }[] = [
 type Props = {
   viableWeekdays: Weekday[];
   onApply: (weekdays: Weekday[], value: VoteValue) => void;
+  onReset: () => void;
   className?: string;
 };
 
-export function QuickFillBar({ viableWeekdays, onApply, className }: Props) {
+export function QuickFillBar({
+  viableWeekdays,
+  onApply,
+  onReset,
+  className,
+}: Props) {
   const [selected, setSelected] = useState<Set<Weekday>>(new Set());
   const viable = new Set(viableWeekdays);
 
@@ -89,6 +95,18 @@ export function QuickFillBar({ viableWeekdays, onApply, className }: Props) {
         <FillButton color="vote-maybe" glyph="Maybe" onClick={() => apply("maybe")} disabled={!selected.size} />
         <FillButton color="vote-no" glyph="No" onClick={() => apply("no")} disabled={!selected.size} />
       </div>
+
+      <span className="hidden h-5 w-px bg-hairline sm:inline-block" />
+
+      <button
+        type="button"
+        onClick={onReset}
+        className="inline-flex h-7 items-center gap-1.5 rounded-md border border-hairline px-2 text-xs font-display tracking-wider uppercase text-ink-soft transition hover:bg-parchment hover:text-ink"
+        title="Clear your votes for this month"
+      >
+        <RotateCcw className="h-3.5 w-3.5" />
+        Reset
+      </button>
     </div>
   );
 }

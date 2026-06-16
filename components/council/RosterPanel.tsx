@@ -2,9 +2,7 @@
 
 import { Crown } from "lucide-react";
 import { Avatar } from "./Avatar";
-import { VoteChip } from "./VoteChip";
-import type { Member, User, Vote, VoteValue } from "@/lib/types";
-import { format } from "date-fns";
+import type { Member, User } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 type MemberWithUser = Member & { user: User };
@@ -12,31 +10,11 @@ type MemberWithUser = Member & { user: User };
 type Props = {
   members: MemberWithUser[];
   myUserId: string | null;
-  /** The leading day (best day) — drives the per-member chip column. */
-  leadingDayIso: string | null;
-  /** All votes for the campaign (we filter for the leading day inside). */
-  votes: Vote[];
 };
 
-function isoToWeekdayLabel(iso: string) {
-  const [y, m, d] = iso.split("-").map(Number);
-  return format(new Date(y, m - 1, d), "EEE, MMM d").toUpperCase();
-}
-
-export function RosterPanel({
-  members,
-  myUserId,
-  leadingDayIso,
-  votes,
-}: Props) {
+export function RosterPanel({ members, myUserId }: Props) {
   const dms = members.filter((m) => m.isDm);
   const party = members.filter((m) => !m.isDm);
-  const leadingVotes = leadingDayIso
-    ? votes.filter((v) => v.date === leadingDayIso)
-    : [];
-  const voteByUser: Record<string, VoteValue | undefined> = Object.fromEntries(
-    leadingVotes.map((v) => [v.userId, v.value]),
-  );
 
   return (
     <aside className="flex flex-col gap-4 p-4 sm:p-5">
@@ -66,14 +44,10 @@ export function RosterPanel({
         </div>
       )}
 
-      <p className="small-caps">
-        The Party{" "}
-        {leadingDayIso ? `· Votes for ${isoToWeekdayLabel(leadingDayIso)}` : ""}
-      </p>
+      <p className="small-caps">The Party</p>
 
       <ul className="space-y-1.5">
         {party.map((m) => {
-          const v = voteByUser[m.userId];
           const isMe = myUserId === m.userId;
           return (
             <li
@@ -92,7 +66,6 @@ export function RosterPanel({
                   {isMe && " — you"}
                 </p>
               </div>
-              <VoteChip value={v ?? null} />
             </li>
           );
         })}

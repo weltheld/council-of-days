@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { cn } from "@/lib/utils";
+import { Crest } from "./Crest";
 
 type AvatarProps = {
   src?: string;
@@ -30,11 +31,8 @@ export function Avatar({ src, alt, size = 56, ring = "default", className }: Ava
           unoptimized
         />
       ) : (
-        <span
-          className="flex h-full w-full items-center justify-center font-display text-ink"
-          style={{ fontSize: size * 0.4 }}
-        >
-          {alt[0]?.toUpperCase() ?? "?"}
+        <span className="flex h-full w-full items-center justify-center bg-parchment">
+          <Crest size={size} />
         </span>
       )}
     </span>
