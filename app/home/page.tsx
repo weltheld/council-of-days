@@ -75,16 +75,6 @@ export default async function HomePage() {
 
   return (
     <div className="min-h-screen bg-parchment">
-      {/* Background */}
-      <div
-        className="pointer-events-none fixed inset-0 opacity-[0.15]"
-        style={{
-          backgroundImage: "url(/images/bg-parchment.png)",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
-      />
-
       {/* Top Bar */}
       <header className="relative z-10 border-b border-hairline">
         <div className="mx-auto flex max-w-[1440px] items-center gap-4 px-4 py-3 sm:px-8 sm:py-[18px]">

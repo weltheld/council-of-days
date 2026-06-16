@@ -41,6 +41,7 @@ export function InvitePageClient({
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
   const [pending, startTransition] = useTransition();
 
   const inviteLink = useMemo(() => {
@@ -105,9 +106,13 @@ export function InvitePageClient({
             <WaxButton
               type="button"
               variant="outline"
-              onClick={() => navigator.clipboard?.writeText(inviteLink)}
+              onClick={() => {
+                navigator.clipboard?.writeText(inviteLink);
+                setCopied(true);
+                window.setTimeout(() => setCopied(false), 2000);
+              }}
             >
-              Copy
+              {copied ? "Copied!" : "Copy"}
             </WaxButton>
           </div>
           <p className="text-xs text-ink-soft">

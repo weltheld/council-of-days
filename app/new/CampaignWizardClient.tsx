@@ -118,14 +118,6 @@ export function CampaignWizardClient({
 
   return (
     <div className="relative min-h-screen bg-parchment">
-      <div
-        className="pointer-events-none fixed inset-0 opacity-[0.15]"
-        style={{
-          backgroundImage: "url(/images/bg-parchment.png)",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
-      />
       <div className="relative z-10 mx-auto flex w-full max-w-[1100px] flex-col gap-6 px-4 py-6 sm:px-8 sm:py-10">
         <header className="flex flex-col items-center text-center gap-2">
           <Crest size={48} />
