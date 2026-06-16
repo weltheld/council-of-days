@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, useTransition } from "react";
-import { LogOut, Settings2, UserPen } from "lucide-react";
+import { Home, LogOut, Settings2, UserPen } from "lucide-react";
 import { Crest } from "./Crest";
 import { Avatar } from "./Avatar";
 import type { User } from "@/lib/types";
@@ -12,9 +12,7 @@ import { signOutAction } from "@/app/auth/actions";
 type Props = {
   groupName: string;
   subtitle: string;
-  slug: string;
   currentUser?: User;
-  isCreator: boolean;
   /** "Creator" | "Player" shown under the account email. */
   roleLabel?: string;
   /** Show the settings cog (mobile-only trigger, also visible on small screens). */
@@ -24,15 +22,21 @@ type Props = {
 export function TopBar({
   groupName,
   subtitle,
-  slug,
   currentUser,
-  isCreator,
   roleLabel,
   onOpenSettings,
 }: Props) {
   return (
     <header className="border-b border-ink/15 backdrop-blur-[1px]">
       <div className="mx-auto flex max-w-[1440px] items-center gap-3 px-4 py-3 sm:px-8 sm:py-4">
+        <Link
+          href="/home"
+          aria-label="Back to your campaign calendars"
+          title="Home"
+          className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-hairline bg-surface text-ink-soft shadow-sm hover:bg-parchment hover:text-ink"
+        >
+          <Home className="h-4 w-4" />
+        </Link>
         <Crest size={36} className="hidden sm:inline-flex" />
         <div className="min-w-0 flex-1">
           <h1 className="truncate font-display text-base sm:text-2xl text-ink leading-tight">
@@ -44,22 +48,6 @@ export function TopBar({
             </p>
           )}
         </div>
-
-        {isCreator && (
-          <span className="hidden items-center gap-1.5 rounded-full border border-dm-gold/50 bg-dm-gold/10 px-2.5 py-1 text-[10px] font-display tracking-wider uppercase text-dm-gold sm:inline-flex">
-            <Crown className="h-3 w-3" />
-            Creator
-          </span>
-        )}
-
-        {isCreator && (
-          <Link
-            href={`/g/${slug}/invite`}
-            className="hidden text-sm font-display tracking-wider uppercase text-ink-soft hover:text-ink sm:inline"
-          >
-            Invite players
-          </Link>
-        )}
 
         {currentUser && (
           <SignedInAccount
@@ -84,14 +72,6 @@ export function TopBar({
         )}
       </div>
     </header>
-  );
-}
-
-function Crown(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden {...props}>
-      <path d="M3 7l3.5 5L12 4l5.5 8L21 7v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V7z" />
-    </svg>
   );
 }
 

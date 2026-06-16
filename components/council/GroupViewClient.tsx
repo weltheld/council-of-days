@@ -201,9 +201,7 @@ export function GroupViewClient(props: Props) {
         <TopBar
           groupName={group.name}
           subtitle={subtitle}
-          slug={group.slug}
           currentUser={props.currentUser}
-          isCreator={isCreator}
           roleLabel={isCreator ? "Creator" : "Player"}
           onOpenSettings={isCreator ? () => setSettingsOpen(true) : undefined}
         />

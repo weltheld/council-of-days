@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, Crown } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
   buildMonthGrid,
   defaultMonth,
@@ -75,19 +75,6 @@ export function CalendarPanel({
     queueMicrotask(() => onBestDayChange(bestDayIso));
   }
 
-  const dmFreeCount = useMemo(
-    () =>
-      days.filter(
-        (d) =>
-          d.inCurrentMonth &&
-          viableSet.has(d.weekday as Weekday) &&
-          (monthVotes[d.iso] ?? []).some(
-            (v) => v.userId === dmId && v.value === "yes",
-          ),
-      ).length,
-    [days, monthVotes, dmId, viableSet],
-  );
-
   function go(delta: -1 | 1) {
     const m = delta === -1 ? prevMonth(year, monthIndex) : nextMonth(year, monthIndex);
     setMonth(m);
@@ -123,12 +110,6 @@ export function CalendarPanel({
           <ChevronRight className="h-4 w-4" />
         </button>
         <div className="flex-1" />
-        <div className="hidden items-center gap-1.5 text-xs text-dm-gold sm:flex">
-          <Crown className="h-3.5 w-3.5" />
-          <span className="font-display tracking-wider uppercase">
-            DM free · {dmFreeCount}
-          </span>
-        </div>
       </div>
 
       <QuickFillBar
