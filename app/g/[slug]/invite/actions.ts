@@ -141,6 +141,96 @@ export async function resendInviteAction(
   return { ok: true };
 }
 
+export type AddExistingMemberResult =
+  | { ok: true }
+  | { ok: false; error: string };
+
+/**
+ * Add a signed-up user directly to the campaign — but only if the current
+ * creator had invited them (an invitation for that person exists in one of
+ * the creator's campaigns).
+ */
+export async function addExistingMemberAction(
+  slug: string,
+  userId: string,
+): Promise<AddExistingMemberResult> {
+  const supabase = await getServerSupabase();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect(`/login?next=/g/${slug}/invite`);
+
+  const { data: campaign } = await supabase
+    .from("campaigns")
+    .select("id, creator_id")
+    .eq("slug", slug)
+    .maybeSingle();
+  if (!campaign) return { ok: false, error: "Campaign not found." };
+  if (campaign.creator_id !== user.id) {
+    return { ok: false, error: "Only the creator can add members." };
+  }
+
+  const admin = getServiceRoleSupabase();
+  const { data: prof } = await admin
+    .from("profiles")
+    .select("id, email")
+    .eq("id", userId)
+    .maybeSingle();
+  if (!prof) return { ok: false, error: "User not found." };
+
+  // Verify this person was invited by me (invitation in one of my campaigns).
+  const { data: myCampaigns } = await admin
+    .from("campaigns")
+    .select("id")
+    .eq("creator_id", user.id);
+  const myIds = (myCampaigns ?? []).map((c) => c.id);
+  if (myIds.length === 0) {
+    return { ok: false, error: "You can only add people you invited." };
+  }
+  const { data: invByUser } = await admin
+    .from("invitations")
+    .select("id")
+    .in("campaign_id", myIds)
+    .eq("user_id", userId)
+    .limit(1);
+  let invitedByMe = (invByUser?.length ?? 0) > 0;
+  if (!invitedByMe && prof.email) {
+    const { data: invByEmail } = await admin
+      .from("invitations")
+      .select("id")
+      .in("campaign_id", myIds)
+      .ilike("email", prof.email)
+      .limit(1);
+    invitedByMe = (invByEmail?.length ?? 0) > 0;
+  }
+  if (!invitedByMe) {
+    return { ok: false, error: "You can only add people you invited." };
+  }
+
+  const { error } = await admin.from("campaign_members").upsert(
+    { campaign_id: campaign.id, user_id: userId, role: "participant", is_dm: false },
+    { onConflict: "campaign_id,user_id", ignoreDuplicates: true },
+  );
+  if (error) return { ok: false, error: error.message };
+
+  // Mark any matching invitation as joined so it doesn't linger.
+  await admin
+    .from("invitations")
+    .update({ status: "joined", user_id: userId })
+    .eq("campaign_id", campaign.id)
+    .eq("user_id", userId);
+  if (prof.email) {
+    await admin
+      .from("invitations")
+      .update({ status: "joined", user_id: userId })
+      .eq("campaign_id", campaign.id)
+      .ilike("email", prof.email);
+  }
+
+  revalidatePath(`/g/${slug}/invite`);
+  return { ok: true };
+}
+
 export async function cancelInviteAction(slug: string, invitationId: string) {
   const supabase = await getServerSupabase();
   const {

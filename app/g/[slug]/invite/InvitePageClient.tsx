@@ -10,10 +10,18 @@ import { Avatar } from "@/components/council/Avatar";
 import type { BackgroundScene } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import {
+  addExistingMemberAction,
   cancelInviteAction,
   resendInviteAction,
   sendInviteAction,
 } from "./actions";
+
+type AddableUser = {
+  userId: string;
+  displayName: string;
+  email: string;
+  avatarUrl?: string;
+};
 
 type Member = {
   userId: string;
@@ -38,12 +46,14 @@ export function InvitePageClient({
   background,
   members,
   invitations,
+  addableUsers,
 }: {
   slug: string;
   name: string;
   background: BackgroundScene;
   members: Member[];
   invitations: Invitation[];
+  addableUsers: AddableUser[];
 }) {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -86,6 +96,20 @@ export function InvitePageClient({
         setError(result.error);
         return;
       }
+      router.refresh();
+    });
+  }
+
+  function onAddExisting(userId: string) {
+    setError(null);
+    setNotice(null);
+    startTransition(async () => {
+      const result = await addExistingMemberAction(slug, userId);
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
+      setNotice("Player added to the campaign.");
       router.refresh();
     });
   }
@@ -229,6 +253,52 @@ export function InvitePageClient({
             )}
           </ul>
         </section>
+
+        {addableUsers.length > 0 && (
+          <section className="mt-7 space-y-3">
+            <div>
+              <p className="small-caps">Add a player you invited</p>
+              <p className="mt-1 text-xs text-ink-soft">
+                These people signed up but aren&apos;t in any campaign yet. You
+                can only add people you invited.
+              </p>
+            </div>
+            <ul className="space-y-2">
+              {addableUsers.map((u) => (
+                <li
+                  key={u.userId}
+                  className="flex items-center justify-between gap-3 rounded-md border border-hairline/60 bg-surface/60 px-3 py-2"
+                >
+                  <div className="flex min-w-0 items-center gap-3">
+                    <Avatar
+                      src={u.avatarUrl}
+                      alt={u.displayName || u.email}
+                      size={32}
+                    />
+                    <div className="min-w-0">
+                      <p className="truncate text-ink">
+                        {u.displayName || u.email}
+                      </p>
+                      {u.displayName && (
+                        <p className="truncate text-xs text-ink-soft">
+                          {u.email}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <WaxButton
+                    type="button"
+                    variant="outline"
+                    onClick={() => onAddExisting(u.userId)}
+                    disabled={pending}
+                  >
+                    Add
+                  </WaxButton>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
         <form onSubmit={onSend} className="mt-6 flex items-end gap-2">
           <div className="flex-1">
