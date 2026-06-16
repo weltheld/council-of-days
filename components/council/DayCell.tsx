@@ -105,7 +105,13 @@ export function DayCell({
           )}
         </div>
         {dmFree && day.inCurrentMonth && (
-          <VenetianMask className="h-3 w-3 text-dm-gold" aria-label="DM is free" />
+          <span
+            title="The Dungeon Master is available this day"
+            aria-label="The Dungeon Master is available this day"
+            className="inline-flex"
+          >
+            <VenetianMask className="h-3 w-3 text-dm-gold" />
+          </span>
         )}
       </div>
 
