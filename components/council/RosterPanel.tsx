@@ -19,36 +19,38 @@ export function RosterPanel({ members, myUserId }: Props) {
   );
 
   return (
-    <aside className="flex flex-col gap-4 p-4 sm:p-5">
-      <p className="small-caps">The Party</p>
+    <aside className="flex flex-col gap-3 p-4 sm:p-5">
+      <div className="flex items-baseline justify-between">
+        <p className="small-caps">The Party</p>
+        <span className="text-[11px] text-ink-soft">{roster.length}</span>
+      </div>
 
-      <ul className="space-y-1.5">
+      <ul className="divide-y divide-hairline/50 overflow-hidden rounded-lg border border-hairline/60 bg-surface">
         {roster.map((m) => {
           const isMe = myUserId === m.userId;
           return (
             <li
               key={m.userId}
-              className={cn(
-                "flex items-center gap-3 rounded-md border border-hairline/60 bg-surface px-2.5 py-2 shadow-sm",
-              )}
+              className="flex items-center gap-2.5 px-2.5 py-1.5"
             >
-              <Avatar src={m.user.avatarUrl} alt={m.user.characterName} size={36} />
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm text-ink leading-tight">
-                  {m.user.characterName}
-                </p>
-                <p className="truncate text-[11px] text-ink-soft">
-                  {m.user.displayName}
-                  {isMe && " — you"}
-                </p>
-              </div>
+              <Avatar src={m.user.avatarUrl} alt={m.user.characterName} size={30} />
+              <p className="min-w-0 flex-1 truncate text-sm text-ink">
+                <span className="font-medium">{m.user.characterName}</span>
+                {m.user.displayName && (
+                  <span className="text-ink-soft">
+                    {" · "}
+                    {m.user.displayName}
+                    {isMe && " (you)"}
+                  </span>
+                )}
+              </p>
               {m.isDm && (
                 <span
                   title="Dungeon Master"
                   aria-label="Dungeon Master"
                   className="inline-flex shrink-0"
                 >
-                  <VenetianMask className="h-4 w-4 text-dm-gold" />
+                  <VenetianMask className="h-3.5 w-3.5 text-dm-gold" />
                 </span>
               )}
             </li>

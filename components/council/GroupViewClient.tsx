@@ -319,10 +319,10 @@ export function GroupViewClient(props: Props) {
               : "lg:grid lg:grid-cols-[332px_1fr]",
           )}
         >
-          <div className="border-b border-hairline/70 lg:border-b-0 lg:border-r">
+          <div className="order-2 border-b border-hairline/70 lg:order-1 lg:border-b-0 lg:border-r">
             <RosterPanel members={members} myUserId={props.currentUser.id} />
           </div>
-          <div className="flex flex-col">
+          <div className="order-1 flex flex-col lg:order-2">
             <CalendarPanel
               dmUserIds={dmUserIds}
               nameByUserId={nameByUserId}
@@ -345,7 +345,7 @@ export function GroupViewClient(props: Props) {
             </div>
           </div>
           {settingsOpen && isCreator && (
-            <aside className="hidden border-l border-hairline/70 bg-parchment/30 lg:block">
+            <aside className="hidden border-l border-hairline/70 bg-parchment/30 lg:order-3 lg:block">
               <OwnerSettings
                 members={members}
                 creatorId={group.creatorId}
