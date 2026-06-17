@@ -270,32 +270,34 @@ export function GroupViewClient(props: Props) {
         />
 
         {group.bannerUrl ? (
-          <div className="relative h-40 w-full overflow-hidden border-b border-hairline sm:h-52">
+          <div className="relative h-[72px] w-full overflow-hidden border-b border-hairline sm:h-20">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={group.bannerUrl}
               alt=""
               className="h-full w-full object-cover"
             />
-            {/* Scrim guarantees the title reads over any banner colour. */}
-            <div className="absolute inset-0 bg-gradient-to-t from-ink/85 via-ink/35 to-ink/10" />
-            {isCreator && (
-              <button
-                type="button"
-                onClick={() => setSettingsOpen(true)}
-                className="absolute right-4 top-4 inline-flex items-center gap-1.5 rounded-full border border-surface/30 bg-ink/55 px-3 py-1.5 text-xs font-body font-bold text-surface backdrop-blur-sm hover:bg-ink/70 sm:right-8"
-              >
-                <Settings2 className="h-3.5 w-3.5" />
-                Poll settings
-              </button>
-            )}
-            <h1 className="absolute inset-x-0 bottom-0 truncate px-4 py-3 font-display text-2xl font-bold text-surface drop-shadow-[0_2px_6px_rgba(0,0,0,0.85)] sm:px-8 sm:text-4xl">
-              {group.name}
-            </h1>
+            {/* Uniform scrim so the title reads over any banner colour. */}
+            <div className="absolute inset-0 bg-ink/45" />
+            <div className="absolute inset-0 mx-auto flex max-w-[1440px] items-center justify-between gap-3 px-4 sm:px-8">
+              <h1 className="truncate font-display text-xl font-bold text-surface drop-shadow-[0_2px_6px_rgba(0,0,0,0.85)] sm:text-2xl">
+                {group.name}
+              </h1>
+              {isCreator && (
+                <button
+                  type="button"
+                  onClick={() => setSettingsOpen(true)}
+                  className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-surface/30 bg-ink/55 px-3 py-1.5 text-xs font-body font-bold text-surface backdrop-blur-sm hover:bg-ink/70"
+                >
+                  <Settings2 className="h-3.5 w-3.5" />
+                  Poll settings
+                </button>
+              )}
+            </div>
           </div>
         ) : (
-          <div className="flex items-center justify-between gap-3 border-b border-hairline px-4 py-4 sm:px-8">
-            <h1 className="truncate font-display text-2xl font-bold text-ink sm:text-4xl">
+          <div className="mx-auto flex w-full max-w-[1440px] items-center justify-between gap-3 border-b border-hairline px-4 py-3 sm:px-8">
+            <h1 className="truncate font-display text-xl font-bold text-ink sm:text-2xl">
               {group.name}
             </h1>
             {isCreator && (
