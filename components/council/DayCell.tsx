@@ -167,8 +167,23 @@ export function DayCell({
           {tooltipRows.map((r) => (
             <div
               key={r.name}
-              className={cn("text-[11px] leading-snug", voteColor(r.value))}
+              className={cn(
+                "flex items-center gap-1.5 text-[11px] leading-snug",
+                voteColor(r.value),
+              )}
             >
+              <span
+                className={cn(
+                  "h-1.5 w-1.5 shrink-0 rounded-full",
+                  r.value === "yes"
+                    ? "bg-vote-yes"
+                    : r.value === "maybe"
+                      ? "bg-vote-maybe"
+                      : r.value === "no"
+                        ? "bg-vote-no"
+                        : "bg-ink-soft/40",
+                )}
+              />
               {r.name}
             </div>
           ))}
