@@ -271,9 +271,33 @@ export function GroupViewClient(props: Props) {
           characterName={props.currentUser.characterName}
           displayName={props.currentUser.displayName}
           avatarUrl={props.currentUser.avatarUrl}
-          bannerUrl={group.bannerUrl}
-          campaignName={group.name}
         />
+
+        {/* D4 banner card — inset below the header with uniform spacing */}
+        {group.bannerUrl ? (
+          <div className="mx-auto w-full max-w-[1440px] px-4 pt-4 sm:px-8">
+            <div className="relative h-32 overflow-hidden rounded-xl shadow-parchment sm:h-40">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={group.bannerUrl}
+                alt=""
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/10 to-black/65" />
+              <div className="absolute inset-x-0 bottom-0 px-5 pb-4">
+                <h1 className="truncate border-l-2 border-dm-gold pl-3 font-display text-xl font-bold text-surface drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] sm:text-2xl">
+                  {group.name}
+                </h1>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="mx-auto w-full max-w-[1440px] px-4 pt-4 sm:px-8">
+            <h1 className="truncate font-display text-2xl font-bold text-ink">
+              {group.name}
+            </h1>
+          </div>
+        )}
 
         <main
           className={cn(
@@ -284,13 +308,6 @@ export function GroupViewClient(props: Props) {
           )}
         >
           <div className="order-2 border-b border-hairline/70 lg:order-1 lg:border-b-0 lg:border-r">
-            {!group.bannerUrl && (
-              <div className="border-b border-hairline px-4 py-4">
-                <h1 className="truncate font-display text-2xl font-bold text-ink">
-                  {group.name}
-                </h1>
-              </div>
-            )}
             <RosterPanel members={members} myUserId={props.currentUser.id} />
             <div className="hidden flex-col gap-3 px-4 pb-4 sm:px-5 lg:flex">
               <BestDaySummary
