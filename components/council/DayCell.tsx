@@ -158,7 +158,11 @@ export function DayCell({
           )}
         </div>
 
-        {day.inCurrentMonth && <VoteControl value={myVote} />}
+        {day.inCurrentMonth && (
+          <span className="hidden sm:inline-flex">
+            <VoteControl value={myVote} />
+          </span>
+        )}
       </div>
     </button>
 
