@@ -136,33 +136,24 @@ export function DayCell({
         )}
       </div>
 
-      <div className="mt-auto flex items-end justify-between gap-1 pt-1.5">
-        <div className="flex items-center gap-1.5">
+      <div className="mt-auto pt-1.5">
+        <div className="flex items-center divide-x divide-ink/15">
           {yesCount > 0 && (
-            <span className="flex items-center gap-0.5 text-[#2E4A38]">
-              <span className="hidden h-1.5 w-1.5 rounded-full bg-vote-yes sm:inline-block" />
-              <span className="font-display text-xs font-bold leading-none">{yesCount}</span>
+            <span className="px-1.5 first:pl-0 font-display text-xs font-bold leading-none text-[#2E4A38]">
+              {yesCount}
             </span>
           )}
           {maybeCount > 0 && (
-            <span className="flex items-center gap-0.5 text-[#7A5A12]">
-              <span className="hidden h-1.5 w-1.5 rounded-full bg-vote-maybe sm:inline-block" />
-              <span className="font-display text-xs font-bold leading-none">{maybeCount}</span>
+            <span className="px-1.5 first:pl-0 font-display text-xs font-bold leading-none text-[#7A5A12]">
+              {maybeCount}
             </span>
           )}
           {noCount > 0 && (
-            <span className="flex items-center gap-0.5 text-vote-no">
-              <span className="hidden h-1.5 w-1.5 rounded-full bg-vote-no sm:inline-block" />
-              <span className="font-display text-xs font-bold leading-none">{noCount}</span>
+            <span className="px-1.5 first:pl-0 font-display text-xs font-bold leading-none text-vote-no">
+              {noCount}
             </span>
           )}
         </div>
-
-        {day.inCurrentMonth && (
-          <span className="hidden sm:inline-flex">
-            <VoteControl value={myVote} />
-          </span>
-        )}
       </div>
     </button>
 
@@ -194,31 +185,5 @@ export function DayCell({
         </div>
       )}
     </div>
-  );
-}
-
-function VoteControl({ value }: { value: VoteValue | undefined }) {
-  if (!value) {
-    return (
-      <span
-        className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-ink-soft/40 bg-surface/60"
-        aria-hidden
-      >
-        <span className="h-1 w-1 rounded-full bg-ink-soft/60" />
-      </span>
-    );
-  }
-  const cls =
-    value === "yes" ? "bg-vote-yes" : value === "maybe" ? "bg-vote-maybe" : "bg-vote-no";
-  const glyph = value === "yes" ? "✓" : value === "maybe" ? "~" : "✗";
-  return (
-    <span
-      className={cn(
-        "inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1 font-display text-[11px] text-parchment shadow-sm",
-        cls,
-      )}
-    >
-      {glyph}
-    </span>
   );
 }

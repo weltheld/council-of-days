@@ -100,7 +100,7 @@ export function CalendarPanel({
 
   return (
     <section className="flex h-full flex-col gap-3 p-4 sm:p-5">
-      <div className="flex items-center gap-2 sm:gap-4">
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-2 sm:gap-x-4">
         <button
           aria-label="Previous month"
           onClick={() => go(-1)}
@@ -119,6 +119,20 @@ export function CalendarPanel({
           <ChevronRight className="h-4 w-4" />
         </button>
         <div className="flex-1" />
+        <div className="flex items-center gap-2.5 text-[11px] text-ink-soft sm:gap-3">
+          {[
+            { label: "Yes", swatch: "bg-[#D5D9C4]" },
+            { label: "Maybe", swatch: "bg-[#EDE0BE]" },
+            { label: "No", swatch: "bg-[#E8D2C5]" },
+          ].map((l) => (
+            <span key={l.label} className="inline-flex items-center gap-1.5">
+              <span
+                className={`h-3 w-3 rounded-sm border border-ink/15 ${l.swatch}`}
+              />
+              {l.label}
+            </span>
+          ))}
+        </div>
       </div>
 
       <QuickFillBar

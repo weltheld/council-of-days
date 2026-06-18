@@ -274,49 +274,29 @@ export function GroupViewClient(props: Props) {
           avatarUrl={props.currentUser.avatarUrl}
         />
 
-        {group.bannerUrl ? (
-          <div className="relative h-[72px] w-full overflow-hidden border-b border-hairline sm:h-20">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={group.bannerUrl}
-              alt=""
-              className="h-full w-full object-cover"
-            />
-            {/* Uniform scrim so the title reads over any banner colour. */}
-            <div className="absolute inset-0 bg-ink/45" />
-            <div className="absolute inset-0 mx-auto flex max-w-[1440px] items-center justify-between gap-3 px-4 sm:px-8">
-              <h1 className="truncate font-display text-xl font-bold text-surface drop-shadow-[0_2px_6px_rgba(0,0,0,0.85)] sm:text-2xl">
+        {/* Mobile-only slim band on top. */}
+        <div className="lg:hidden">
+          {group.bannerUrl ? (
+            <div className="relative h-[72px] w-full overflow-hidden border-b border-hairline">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={group.bannerUrl}
+                alt=""
+                className="h-full w-full object-cover"
+              />
+              <div className="absolute inset-0 bg-ink/45" />
+              <h1 className="absolute inset-0 flex items-center truncate px-4 font-display text-xl font-bold text-surface drop-shadow-[0_2px_6px_rgba(0,0,0,0.85)]">
                 {group.name}
               </h1>
-              {isCreator && (
-                <button
-                  type="button"
-                  onClick={() => setSettingsOpen(true)}
-                  className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-surface/30 bg-ink/55 px-3 py-1.5 text-xs font-body font-bold text-surface backdrop-blur-sm hover:bg-ink/70"
-                >
-                  <Settings2 className="h-3.5 w-3.5" />
-                  Poll settings
-                </button>
-              )}
             </div>
-          </div>
-        ) : (
-          <div className="mx-auto flex w-full max-w-[1440px] items-center justify-between gap-3 border-b border-hairline px-4 py-3 sm:px-8">
-            <h1 className="truncate font-display text-xl font-bold text-ink sm:text-2xl">
-              {group.name}
-            </h1>
-            {isCreator && (
-              <button
-                type="button"
-                onClick={() => setSettingsOpen(true)}
-                className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-hairline bg-surface px-3 py-1.5 text-xs font-body font-bold text-ink-soft shadow-sm hover:bg-parchment hover:text-ink"
-              >
-                <Settings2 className="h-3.5 w-3.5" />
-                Poll settings
-              </button>
-            )}
-          </div>
-        )}
+          ) : (
+            <div className="border-b border-hairline px-4 py-3">
+              <h1 className="truncate font-display text-xl font-bold text-ink">
+                {group.name}
+              </h1>
+            </div>
+          )}
+        </div>
 
         <main
           className={cn(
@@ -327,6 +307,43 @@ export function GroupViewClient(props: Props) {
           )}
         >
           <div className="order-2 border-b border-hairline/70 lg:order-1 lg:border-b-0 lg:border-r">
+            {/* Desktop-only tall banner at the top of the sidebar. */}
+            <div className="hidden lg:block">
+              {group.bannerUrl ? (
+                <div className="relative h-44 w-full overflow-hidden border-b border-hairline">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={group.bannerUrl}
+                    alt=""
+                    className="h-full w-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-ink/85 via-ink/30 to-ink/10" />
+                  <h1 className="absolute inset-x-0 bottom-0 truncate px-4 py-3 font-display text-2xl font-bold text-surface drop-shadow-[0_2px_6px_rgba(0,0,0,0.85)]">
+                    {group.name}
+                  </h1>
+                </div>
+              ) : (
+                <div className="border-b border-hairline px-4 py-4">
+                  <h1 className="truncate font-display text-2xl font-bold text-ink">
+                    {group.name}
+                  </h1>
+                </div>
+              )}
+            </div>
+
+            {isCreator && (
+              <div className="border-b border-hairline/70 px-4 py-3 sm:px-5">
+                <button
+                  type="button"
+                  onClick={() => setSettingsOpen(true)}
+                  className="inline-flex items-center gap-1.5 rounded-md border border-hairline bg-surface px-3 py-1.5 text-xs font-body font-bold text-ink-soft shadow-sm hover:bg-parchment hover:text-ink"
+                >
+                  <Settings2 className="h-3.5 w-3.5" />
+                  Poll settings
+                </button>
+              </div>
+            )}
+
             <RosterPanel members={members} myUserId={props.currentUser.id} />
           </div>
           <div className="order-1 flex flex-col lg:order-2">
