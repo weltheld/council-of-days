@@ -43,16 +43,33 @@ export function AppHeader({
       <div className={`relative mx-auto flex max-w-[1440px] flex-col px-4 sm:px-8 ${hasBanner ? "h-36" : ""}`}>
         {/* Nav row — always at the top */}
         <div className="flex h-16 items-center gap-3">
-          <Link
-            href="/home"
-            aria-label="Council of Days — home"
-            className="flex min-w-0 flex-1 items-center gap-2.5"
-          >
-            <Crest size={38} />
-            <span className={`truncate font-display text-base font-bold sm:text-xl ${hasBanner ? "text-surface drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)]" : "text-ink"}`}>
-              Council of Days
-            </span>
-          </Link>
+          {hasBanner ? (
+            /* Frosted pill badge — compact app identity on banner */
+            <Link
+              href="/home"
+              aria-label="Council of Days — home"
+              className="flex min-w-0 flex-1 items-center"
+            >
+              <span className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-black/25 py-1 pl-1 pr-3 backdrop-blur-sm">
+                <Crest size={26} />
+                <span className="truncate font-body text-[11px] font-semibold uppercase tracking-widest text-white/80">
+                  Council of Days
+                </span>
+              </span>
+            </Link>
+          ) : (
+            /* Default full-size logo + wordmark */
+            <Link
+              href="/home"
+              aria-label="Council of Days — home"
+              className="flex min-w-0 flex-1 items-center gap-2.5"
+            >
+              <Crest size={38} />
+              <span className="truncate font-display text-base font-bold text-ink sm:text-xl">
+                Council of Days
+              </span>
+            </Link>
+          )}
 
           <ProfileDialog
             firstName={firstName}
@@ -82,7 +99,7 @@ export function AppHeader({
         {/* Campaign name — anchored to bottom when banner is present */}
         {hasBanner && campaignName && (
           <div className="flex flex-1 items-end pb-3">
-            <h1 className="truncate font-display text-xl font-bold text-surface drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] sm:text-2xl">
+            <h1 className="truncate border-l-2 border-dm-gold pl-3 font-display text-xl font-bold text-surface drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] sm:text-2xl">
               {campaignName}
             </h1>
           </div>
