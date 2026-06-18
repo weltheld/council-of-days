@@ -310,7 +310,7 @@ export function GroupViewClient(props: Props) {
             {/* Desktop-only tall banner at the top of the sidebar. */}
             <div className="hidden lg:block">
               {group.bannerUrl ? (
-                <div className="relative h-44 w-full overflow-hidden border-b border-hairline">
+                <div className="relative h-64 w-full overflow-hidden border-b border-hairline">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={group.bannerUrl}
@@ -318,7 +318,7 @@ export function GroupViewClient(props: Props) {
                     className="h-full w-full object-cover"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-ink/85 via-ink/30 to-ink/10" />
-                  <h1 className="absolute inset-x-0 bottom-0 truncate px-4 py-3 font-display text-2xl font-bold text-surface drop-shadow-[0_2px_6px_rgba(0,0,0,0.85)]">
+                  <h1 className="absolute inset-x-0 bottom-0 truncate px-4 py-3 font-display text-lg font-bold text-surface drop-shadow-[0_2px_6px_rgba(0,0,0,0.85)]">
                     {group.name}
                   </h1>
                 </div>
