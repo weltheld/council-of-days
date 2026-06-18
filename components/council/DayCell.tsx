@@ -166,7 +166,7 @@ export function DayCell({
       </div>
     </button>
 
-      {day.inCurrentMonth && tooltipRows.length > 0 && (
+      {day.inCurrentMonth && isViableWeekday && tooltipRows.length > 0 && (
         <div className="pointer-events-none absolute bottom-full left-1/2 z-30 mb-1.5 hidden w-max max-w-[220px] -translate-x-1/2 rounded-md border border-hairline bg-surface px-3 py-2 text-left shadow-parchment group-hover:block">
           {tooltipRows.map((r) => (
             <div
