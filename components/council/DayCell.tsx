@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { VenetianMask } from "lucide-react";
 import type { CalendarDay } from "@/lib/calendar";
 import type { Vote, VoteValue } from "@/lib/types";
@@ -67,6 +68,8 @@ export function DayCell({
   const interactive =
     day.inCurrentMonth && isViableWeekday && !day.isPast && !!myUserId;
 
+  const [cursor, setCursor] = useState<{ x: number; y: number } | null>(null);
+
   // Tinted background derived from user's own vote. Solid (opaque) beige
   // blends so the tile keeps its parchment color and just gains a subtle
   // green/yellow/red tint — never going transparent.
@@ -83,7 +86,11 @@ export function DayCell({
             : "bg-surface";
 
   return (
-    <div className="group relative h-full">
+    <div
+      className="group relative h-full"
+      onMouseMove={(e) => setCursor({ x: e.clientX, y: e.clientY })}
+      onMouseLeave={() => setCursor(null)}
+    >
     <button
       type="button"
       onClick={() => interactive && onCycle(day.iso)}
@@ -157,8 +164,11 @@ export function DayCell({
       </div>
     </button>
 
-      {day.inCurrentMonth && isViableWeekday && tooltipRows.length > 0 && (
-        <div className="pointer-events-none absolute bottom-full left-1/2 z-30 mb-1.5 hidden w-max max-w-[220px] -translate-x-1/2 rounded-md border border-hairline bg-surface px-3 py-2 text-left shadow-parchment group-hover:block">
+      {day.inCurrentMonth && isViableWeekday && tooltipRows.length > 0 && cursor && (
+        <div
+          className="pointer-events-none fixed z-50 w-max max-w-[220px] rounded-md border border-hairline bg-surface px-3 py-2 text-left shadow-parchment"
+          style={{ left: cursor.x + 14, top: cursor.y + 14 }}
+        >
           {tooltipRows.map((r) => (
             <div
               key={r.name}
