@@ -205,15 +205,20 @@ export function GroupViewClient(props: Props) {
   );
 
   const handleUploadBanner = useCallback(
-    async (blob: Blob) => {
+    async (blob: Blob, original?: Blob) => {
       const fd = new FormData();
       fd.append("file", blob, "banner.jpg");
+      if (original) fd.append("original", original, "original");
       const result = await uploadBannerAction(group.id, fd);
       if (!result.ok) throw new Error(result.error);
       setGroup((g) => ({ ...g, bannerUrl: result.url }));
     },
     [group.id],
   );
+
+  const bannerOriginalUrl = supabase.storage
+    .from("banners")
+    .getPublicUrl(`${group.id}/original`).data.publicUrl;
 
   const handleRemoveBanner = useCallback(async () => {
     setGroup((g) => ({ ...g, bannerUrl: undefined }));
@@ -354,6 +359,7 @@ export function GroupViewClient(props: Props) {
                 viableWeekdays={group.viableWeekdays}
                 background={group.background}
                 bannerUrl={group.bannerUrl}
+                bannerOriginalUrl={bannerOriginalUrl}
                 onToggleWeekday={handleToggleWeekday}
                 onChangeBackground={handleChangeBackground}
                 onUploadBanner={handleUploadBanner}
@@ -374,6 +380,7 @@ export function GroupViewClient(props: Props) {
             viableWeekdays={group.viableWeekdays}
             background={group.background}
             bannerUrl={group.bannerUrl}
+            bannerOriginalUrl={bannerOriginalUrl}
             onToggleWeekday={handleToggleWeekday}
             onChangeBackground={handleChangeBackground}
             onUploadBanner={handleUploadBanner}
@@ -418,6 +425,7 @@ function MobileSettingsSheet({
   viableWeekdays,
   background,
   bannerUrl,
+  bannerOriginalUrl,
   onToggleWeekday,
   onChangeBackground,
   onUploadBanner,
@@ -431,9 +439,10 @@ function MobileSettingsSheet({
   viableWeekdays: Weekday[];
   background: BackgroundScene;
   bannerUrl?: string;
+  bannerOriginalUrl?: string;
   onToggleWeekday: (w: Weekday) => void;
   onChangeBackground: (bg: BackgroundScene) => void;
-  onUploadBanner: (blob: Blob) => Promise<void>;
+  onUploadBanner: (blob: Blob, original?: Blob) => Promise<void>;
   onRemoveBanner: () => void;
   onSetMemberDm: (userId: string, isDm: boolean) => void;
   onRemoveMember: (userId: string) => void;
@@ -456,6 +465,7 @@ function MobileSettingsSheet({
             viableWeekdays={viableWeekdays}
             background={background}
             bannerUrl={bannerUrl}
+            bannerOriginalUrl={bannerOriginalUrl}
             onToggleWeekday={onToggleWeekday}
             onChangeBackground={onChangeBackground}
             onUploadBanner={onUploadBanner}

@@ -1,7 +1,15 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { ImagePlus, Pencil, Swords, Trash2, VenetianMask, X } from "lucide-react";
+import {
+  Crop,
+  ImagePlus,
+  Pencil,
+  Swords,
+  Trash2,
+  VenetianMask,
+  X,
+} from "lucide-react";
 import type { BackgroundScene, Member, User, Weekday } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Avatar } from "./Avatar";
@@ -32,9 +40,10 @@ type Props = {
   viableWeekdays: Weekday[];
   background: BackgroundScene;
   bannerUrl?: string;
+  bannerOriginalUrl?: string;
   onToggleWeekday: (w: Weekday) => void;
   onChangeBackground: (bg: BackgroundScene) => void;
-  onUploadBanner: (blob: Blob) => Promise<void>;
+  onUploadBanner: (blob: Blob, original?: Blob) => Promise<void>;
   onRemoveBanner: () => void;
   onSetMemberDm: (userId: string, isDm: boolean) => void;
   onRemoveMember: (userId: string) => void;
@@ -43,12 +52,16 @@ type Props = {
   embedded?: boolean;
 };
 
+// Roughly the slim banner's on-screen shape (full width, ~80px tall).
+const BANNER_ASPECT = 12;
+
 export function OwnerSettings({
   members,
   creatorId,
   viableWeekdays,
   background,
   bannerUrl,
+  bannerOriginalUrl,
   onToggleWeekday,
   onChangeBackground,
   onUploadBanner,
@@ -63,6 +76,8 @@ export function OwnerSettings({
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [cropFile, setCropFile] = useState<File | null>(null);
+  // The full image to also store on confirm (only for a fresh upload).
+  const [pendingOriginal, setPendingOriginal] = useState<Blob | null>(null);
 
   function onPickBanner(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -77,14 +92,40 @@ export function OwnerSettings({
       return;
     }
     setUploadError(null);
+    setPendingOriginal(file);
     setCropFile(file);
+  }
+
+  // Re-open the cropper on the previously uploaded image (no re-upload).
+  async function onAdjustCrop() {
+    setUploadError(null);
+    try {
+      let res = bannerOriginalUrl
+        ? await fetch(bannerOriginalUrl, { cache: "no-store" })
+        : null;
+      if ((!res || !res.ok) && bannerUrl) {
+        res = await fetch(bannerUrl, { cache: "no-store" });
+      }
+      if (!res || !res.ok) throw new Error("Could not load the image.");
+      const blob = await res.blob();
+      const file = new File([blob], "banner-source", {
+        type: blob.type || "image/jpeg",
+      });
+      setPendingOriginal(null); // original already stored
+      setCropFile(file);
+    } catch (err) {
+      setUploadError(
+        err instanceof Error ? err.message : "Could not load the image.",
+      );
+    }
   }
 
   async function onCropConfirm(blob: Blob) {
     setUploading(true);
     try {
-      await onUploadBanner(blob);
+      await onUploadBanner(blob, pendingOriginal ?? undefined);
       setCropFile(null);
+      setPendingOriginal(null);
     } catch (err) {
       setUploadError(
         err instanceof Error ? err.message : "Upload failed. Try again.",
@@ -99,12 +140,15 @@ export function OwnerSettings({
       {cropFile && (
         <ImageCropper
           file={cropFile}
-          aspect={4}
-          viewWidth={360}
+          aspect={BANNER_ASPECT}
+          viewWidth={400}
           outputWidth={1600}
           title="Frame your banner"
-          hint="Drag to move, slide to zoom. Shown wide across the calendar."
-          onCancel={() => setCropFile(null)}
+          hint="Drag to move, slide to zoom. Shown as a slim band across the calendar."
+          onCancel={() => {
+            setCropFile(null);
+            setPendingOriginal(null);
+          }}
           onConfirm={onCropConfirm}
         />
       )}
@@ -195,6 +239,17 @@ export function OwnerSettings({
               <ImagePlus className="h-3.5 w-3.5" />
               {uploading ? "Uploading..." : bannerUrl ? "Replace" : "Upload"}
             </button>
+            {bannerUrl && (
+              <button
+                type="button"
+                onClick={onAdjustCrop}
+                disabled={uploading}
+                className="inline-flex items-center gap-1.5 rounded-md border border-hairline bg-surface/60 px-3 py-1.5 text-xs font-display tracking-wider uppercase text-ink hover:bg-parchment disabled:opacity-50"
+              >
+                <Crop className="h-3.5 w-3.5" />
+                Adjust crop
+              </button>
+            )}
             {bannerUrl && (
               <button
                 type="button"

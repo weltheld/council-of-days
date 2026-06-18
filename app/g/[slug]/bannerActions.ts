@@ -22,6 +22,7 @@ export async function uploadBannerAction(
   if (!(file instanceof File)) {
     return { ok: false, error: "No image was provided." };
   }
+  const original = formData.get("original");
 
   const supabase = await getServerSupabase();
   const {
@@ -49,6 +50,19 @@ export async function uploadBannerAction(
       cacheControl: "3600",
     });
   if (uploadError) return { ok: false, error: uploadError.message };
+
+  // Keep the full uploaded image so the crop can be re-selected later
+  // without re-uploading. Stored at a deterministic path (overwritten).
+  if (original instanceof File) {
+    const obytes = await original.arrayBuffer();
+    await admin.storage
+      .from("banners")
+      .upload(`${campaignId}/original`, obytes, {
+        upsert: true,
+        contentType: original.type || "image/jpeg",
+        cacheControl: "3600",
+      });
+  }
 
   const {
     data: { publicUrl },
