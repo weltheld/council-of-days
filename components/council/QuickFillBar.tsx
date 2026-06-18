@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { RotateCcw, Wand2 } from "lucide-react";
+import { ChevronDown, RotateCcw, Wand2 } from "lucide-react";
 import type { VoteValue, Weekday } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -30,6 +30,7 @@ export function QuickFillBar({
 }: Props) {
   const [selected, setSelected] = useState<Set<Weekday>>(new Set());
   const [confirmReset, setConfirmReset] = useState(false);
+  const [open, setOpen] = useState(false);
   const viable = new Set(viableWeekdays);
 
   function toggle(w: Weekday) {
@@ -51,16 +52,35 @@ export function QuickFillBar({
   return (
     <div
       className={cn(
-        "flex flex-wrap items-center gap-3 rounded-md border border-hairline bg-surface px-3 py-2.5 shadow-sm",
+        "flex flex-col gap-2 rounded-md border border-hairline bg-surface px-3 py-2.5 shadow-sm sm:flex-row sm:flex-wrap sm:items-center sm:gap-3",
         className,
       )}
     >
-      <span className="inline-flex items-center gap-1.5 text-gold">
-        <Wand2 className="h-3.5 w-3.5" />
-        <span className="small-caps">Quick fill</span>
-      </span>
+      <div className="flex items-center justify-between sm:contents">
+        <span className="inline-flex items-center gap-1.5 text-gold">
+          <Wand2 className="h-3.5 w-3.5" />
+          <span className="small-caps">Quick fill</span>
+        </span>
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          aria-expanded={open}
+          aria-label="Toggle quick fill"
+          className="inline-flex h-7 w-7 items-center justify-center rounded-md text-ink-soft hover:bg-parchment hover:text-ink sm:hidden"
+        >
+          <ChevronDown
+            className={cn("h-4 w-4 transition-transform", open && "rotate-180")}
+          />
+        </button>
+      </div>
 
-      <span className="hidden h-5 w-px bg-hairline sm:inline-block" />
+      <div
+        className={cn(
+          "flex-wrap items-center gap-3 sm:flex",
+          open ? "flex" : "hidden",
+        )}
+      >
+        <span className="hidden h-5 w-px bg-hairline sm:inline-block" />
 
       <div className="flex flex-wrap items-center gap-1">
         {DAY_CHIPS.map(({ label, value }) => {
@@ -108,6 +128,7 @@ export function QuickFillBar({
         <RotateCcw className="h-3.5 w-3.5" />
         Reset
       </button>
+      </div>
 
       {confirmReset && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
