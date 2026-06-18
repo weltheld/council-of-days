@@ -50,9 +50,11 @@ export function AppHeader({
               aria-label="Council of Days — home"
               className="flex min-w-0 flex-1 items-center"
             >
-              <span className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-black/25 py-1 pl-1 pr-3 backdrop-blur-sm">
-                <Crest size={26} />
-                <span className="truncate font-body text-[11px] font-semibold uppercase tracking-widest text-white/80">
+              <span className="inline-flex items-center gap-2 rounded-full border border-dm-gold/40 bg-parchment/18 py-1 pl-1 pr-3">
+                <span className="inline-flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full bg-dm-gold/35">
+                  <Crest size={18} />
+                </span>
+                <span className="truncate font-body text-[11px] font-semibold uppercase tracking-widest text-parchment/95">
                   Council of Days
                 </span>
               </span>
