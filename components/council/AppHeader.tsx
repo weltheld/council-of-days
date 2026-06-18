@@ -26,60 +26,87 @@ export function AppHeader({
   const hasBanner = !!bannerUrl;
 
   return (
-    <header className={hasBanner ? "bg-parchment" : "border-b border-hairline"}>
-      {/* Nav row — identical on all pages */}
-      <div className="mx-auto flex h-14 max-w-[1440px] items-center gap-3 px-4 sm:px-8"
-           style={hasBanner ? { borderBottom: "1px solid rgba(122,90,18,0.18)" } : {}}>
-        <Link
-          href="/home"
-          aria-label="Council of Days — home"
-          className="flex min-w-0 flex-1 items-center gap-2.5"
-        >
-          <Crest size={36} />
-          <span className="truncate font-display text-base font-bold text-ink sm:text-xl">
-            Council of Days
-          </span>
-        </Link>
-
-        <ProfileDialog
-          firstName={firstName}
-          email={email}
-          characterName={characterName}
-          displayName={displayName}
-          avatarUrl={avatarUrl}
-        />
-
-        <form action={signOutAction}>
-          <button
-            type="submit"
-            aria-label="Sign out"
-            title="Sign out"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-hairline bg-surface text-ink-soft shadow-sm hover:bg-parchment hover:text-ink"
-          >
-            <LogOut className="h-4 w-4" />
-          </button>
-        </form>
-      </div>
-
-      {/* Banner card — only on campaign pages */}
-      {hasBanner && campaignName && (
-        <div className="mx-auto max-w-[1440px] px-4 pb-4 sm:px-8">
-          <div className="relative h-28 overflow-hidden rounded-xl shadow-parchment sm:h-36">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={bannerUrl}
-              alt=""
-              className="absolute inset-0 h-full w-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/10 to-black/65" />
-            <div className="absolute inset-x-0 bottom-0 flex items-end px-5 pb-4">
-              <h1 className="truncate border-l-2 border-dm-gold pl-3 font-display text-xl font-bold text-surface drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] sm:text-2xl">
-                {campaignName}
-              </h1>
-            </div>
-          </div>
-        </div>
+    <header className={hasBanner ? "relative overflow-hidden" : "border-b border-hairline"}>
+      {hasBanner && (
+        <>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={bannerUrl}
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+          {/* Strong gradient at top for nav bar, fades out in the middle, strengthens again at bottom for campaign name */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/75 via-black/20 to-black/70" />
+        </>
       )}
+
+      <div className={`relative mx-auto flex max-w-[1440px] flex-col px-4 sm:px-8 ${hasBanner ? "h-36" : ""}`}>
+        {/* Nav row — always at the top */}
+        <div className="flex h-16 items-center gap-3">
+          {hasBanner ? (
+            /* Frosted pill badge — compact app identity on banner */
+            <Link
+              href="/home"
+              aria-label="Council of Days — home"
+              className="flex min-w-0 flex-1 items-center"
+            >
+              <span className="inline-flex items-center gap-2 rounded-full border border-dm-gold/60 bg-parchment/90 py-1 pl-1 pr-3 shadow-sm">
+                <span className="inline-flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full bg-dm-gold/20">
+                  <Crest size={18} />
+                </span>
+                <span className="truncate font-body text-[11px] font-semibold uppercase tracking-widest text-ink">
+                  Council of Days
+                </span>
+              </span>
+            </Link>
+          ) : (
+            /* Default full-size logo + wordmark */
+            <Link
+              href="/home"
+              aria-label="Council of Days — home"
+              className="flex min-w-0 flex-1 items-center gap-2.5"
+            >
+              <Crest size={38} />
+              <span className="truncate font-display text-base font-bold text-ink sm:text-xl">
+                Council of Days
+              </span>
+            </Link>
+          )}
+
+          <ProfileDialog
+            firstName={firstName}
+            email={email}
+            characterName={characterName}
+            displayName={displayName}
+            avatarUrl={avatarUrl}
+            variant={hasBanner ? "banner" : "default"}
+          />
+
+          <form action={signOutAction}>
+            <button
+              type="submit"
+              aria-label="Sign out"
+              title="Sign out"
+              className={`inline-flex h-9 w-9 items-center justify-center rounded-full border shadow-sm ${
+                hasBanner
+                  ? "border-white/30 bg-black/25 text-surface hover:bg-black/40"
+                  : "border-hairline bg-surface text-ink-soft hover:bg-parchment hover:text-ink"
+              }`}
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
+          </form>
+        </div>
+
+        {/* Campaign name — anchored to bottom when banner is present */}
+        {hasBanner && campaignName && (
+          <div className="flex flex-1 items-end pb-3">
+            <h1 className="truncate border-l-2 border-dm-gold pl-3 font-display text-xl font-bold text-surface drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] sm:text-2xl">
+              {campaignName}
+            </h1>
+          </div>
+        )}
+      </div>
     </header>
   );
 }
