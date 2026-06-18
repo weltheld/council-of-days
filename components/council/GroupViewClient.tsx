@@ -275,7 +275,7 @@ export function GroupViewClient(props: Props) {
 
         {/* D4 banner card — inset below the header with uniform spacing */}
         {group.bannerUrl ? (
-          <div className="mx-auto w-full max-w-[1440px] px-4 pt-4 sm:px-8">
+          <div className="mx-auto w-full max-w-[1440px] pt-4">
             <div className="relative h-32 overflow-hidden rounded-xl shadow-parchment sm:h-40">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -292,7 +292,7 @@ export function GroupViewClient(props: Props) {
             </div>
           </div>
         ) : (
-          <div className="mx-auto w-full max-w-[1440px] px-4 pt-4 sm:px-8">
+          <div className="mx-auto w-full max-w-[1440px] px-4 pt-4 sm:px-5">
             <h1 className="truncate font-display text-2xl font-bold text-ink">
               {group.name}
             </h1>
