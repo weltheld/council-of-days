@@ -52,8 +52,8 @@ type Props = {
   embedded?: boolean;
 };
 
-// Roughly the slim banner's on-screen shape (full width, ~80px tall).
-const BANNER_ASPECT = 12;
+// Full-width header banner: max-width 1440px at h-36 (144px) = 10:1.
+const BANNER_ASPECT = 10;
 
 export function OwnerSettings({
   members,
