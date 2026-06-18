@@ -52,8 +52,8 @@ type Props = {
   embedded?: boolean;
 };
 
-// Full-width header banner: max-width 1440px at h-36 (144px) = 10:1.
-const BANNER_ASPECT = 10;
+// Inset banner card: h-40 (160px) at ~1240px usable width on a 1280px screen ≈ 8:1.
+const BANNER_ASPECT = 8;
 
 export function OwnerSettings({
   members,
