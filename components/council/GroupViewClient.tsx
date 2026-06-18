@@ -271,31 +271,9 @@ export function GroupViewClient(props: Props) {
           characterName={props.currentUser.characterName}
           displayName={props.currentUser.displayName}
           avatarUrl={props.currentUser.avatarUrl}
+          bannerUrl={group.bannerUrl}
+          campaignName={group.name}
         />
-
-        {/* Mobile-only slim band on top. */}
-        <div className="lg:hidden">
-          {group.bannerUrl ? (
-            <div className="relative mx-4 mt-3 h-[72px] overflow-hidden rounded-lg border border-hairline">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={group.bannerUrl}
-                alt=""
-                className="h-full w-full object-cover"
-              />
-              <div className="absolute inset-0 bg-ink/45" />
-              <h1 className="absolute inset-0 flex items-center truncate px-4 font-display text-xl font-bold text-surface drop-shadow-[0_2px_6px_rgba(0,0,0,0.85)]">
-                {group.name}
-              </h1>
-            </div>
-          ) : (
-            <div className="border-b border-hairline px-4 py-3">
-              <h1 className="truncate font-display text-xl font-bold text-ink">
-                {group.name}
-              </h1>
-            </div>
-          )}
-        </div>
 
         <main
           className={cn(
@@ -306,30 +284,13 @@ export function GroupViewClient(props: Props) {
           )}
         >
           <div className="order-2 border-b border-hairline/70 lg:order-1 lg:border-b-0 lg:border-r">
-            {/* Desktop-only tall banner at the top of the sidebar. */}
-            <div className="hidden lg:block">
-              {group.bannerUrl ? (
-                <div className="relative mx-4 mt-4 h-64 overflow-hidden rounded-lg border border-hairline">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={group.bannerUrl}
-                    alt=""
-                    className="h-full w-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-ink/85 via-ink/30 to-ink/10" />
-                  <h1 className="absolute inset-x-0 bottom-0 truncate px-4 py-3 font-display text-lg font-bold text-surface drop-shadow-[0_2px_6px_rgba(0,0,0,0.85)]">
-                    {group.name}
-                  </h1>
-                </div>
-              ) : (
-                <div className="border-b border-hairline px-4 py-4">
-                  <h1 className="truncate font-display text-2xl font-bold text-ink">
-                    {group.name}
-                  </h1>
-                </div>
-              )}
-            </div>
-
+            {!group.bannerUrl && (
+              <div className="border-b border-hairline px-4 py-4">
+                <h1 className="truncate font-display text-2xl font-bold text-ink">
+                  {group.name}
+                </h1>
+              </div>
+            )}
             <RosterPanel members={members} myUserId={props.currentUser.id} />
           </div>
           <div className="order-1 flex flex-col lg:order-2">

@@ -10,6 +10,7 @@ type Props = {
   characterName: string;
   displayName: string;
   avatarUrl?: string;
+  variant?: "default" | "banner";
 };
 
 /**
@@ -23,7 +24,9 @@ export function ProfileDialog({
   characterName,
   displayName,
   avatarUrl,
+  variant = "default",
 }: Props) {
+  const onBanner = variant === "banner";
   const [open, setOpen] = useState(false);
 
   return (
@@ -32,10 +35,14 @@ export function ProfileDialog({
         type="button"
         onClick={() => setOpen(true)}
         title="Edit profile"
-        className="inline-flex items-center gap-2 rounded-full border border-hairline bg-surface py-1 pl-1 pr-3 shadow-sm hover:bg-parchment"
+        className={`inline-flex items-center gap-2 rounded-full border py-1 pl-1 pr-3 shadow-sm ${
+          onBanner
+            ? "border-white/30 bg-black/25 hover:bg-black/40"
+            : "border-hairline bg-surface hover:bg-parchment"
+        }`}
       >
         <Avatar src={avatarUrl} alt={firstName} size={30} />
-        <span className="max-w-[100px] truncate font-body text-sm font-bold text-ink sm:max-w-[160px]">
+        <span className={`max-w-[100px] truncate font-body text-sm font-bold sm:max-w-[160px] ${onBanner ? "text-surface" : "text-ink"}`}>
           {firstName}
         </span>
       </button>
