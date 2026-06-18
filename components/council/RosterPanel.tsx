@@ -5,6 +5,7 @@ import { Avatar } from "./Avatar";
 import type { Member, User } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
+
 type MemberWithUser = Member & { user: User };
 
 type Props = {
@@ -22,7 +23,6 @@ export function RosterPanel({ members, myUserId }: Props) {
     <aside className="flex flex-col gap-3 p-4 sm:p-5">
       <div className="flex items-baseline justify-between">
         <p className="small-caps">The Party</p>
-        <span className="text-[11px] text-ink-soft">{roster.length}</span>
       </div>
 
       <ul className="divide-y divide-hairline/50 overflow-hidden rounded-lg border border-hairline/60 bg-surface">
@@ -57,6 +57,19 @@ export function RosterPanel({ members, myUserId }: Props) {
           );
         })}
       </ul>
+
+      <div className="flex items-center gap-2.5 text-[11px] text-ink-soft">
+        {[
+          { label: "Yes", swatch: "bg-[#D5D9C4]" },
+          { label: "Maybe", swatch: "bg-[#EDE0BE]" },
+          { label: "No", swatch: "bg-[#E8D2C5]" },
+        ].map((l) => (
+          <span key={l.label} className="inline-flex items-center gap-1.5">
+            <span className={cn("h-3 w-3 rounded-sm border border-ink/15", l.swatch)} />
+            {l.label}
+          </span>
+        ))}
+      </div>
     </aside>
   );
 }

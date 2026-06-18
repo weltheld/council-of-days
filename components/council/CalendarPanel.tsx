@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Settings2 } from "lucide-react";
 import {
   buildMonthGrid,
   defaultMonth,
@@ -29,6 +29,8 @@ type Props = {
   onBestDayChange?: (iso: string | null) => void;
   onMonthChange?: (year: number, monthIndex: number) => void;
   initialMonth?: { year: number; monthIndex: number };
+  isCreator?: boolean;
+  onOpenSettings?: () => void;
 };
 
 export function CalendarPanel({
@@ -43,6 +45,8 @@ export function CalendarPanel({
   onBestDayChange,
   onMonthChange,
   initialMonth,
+  isCreator,
+  onOpenSettings,
 }: Props) {
   const start = initialMonth ?? defaultMonth();
   const [{ year, monthIndex }, setMonth] = useState(start);
@@ -119,20 +123,16 @@ export function CalendarPanel({
           <ChevronRight className="h-4 w-4" />
         </button>
         <div className="flex-1" />
-        <div className="flex items-center gap-2.5 text-[11px] text-ink-soft sm:gap-3">
-          {[
-            { label: "Yes", swatch: "bg-[#D5D9C4]" },
-            { label: "Maybe", swatch: "bg-[#EDE0BE]" },
-            { label: "No", swatch: "bg-[#E8D2C5]" },
-          ].map((l) => (
-            <span key={l.label} className="inline-flex items-center gap-1.5">
-              <span
-                className={`h-3 w-3 rounded-sm border border-ink/15 ${l.swatch}`}
-              />
-              {l.label}
-            </span>
-          ))}
-        </div>
+        {isCreator && onOpenSettings && (
+          <button
+            type="button"
+            onClick={onOpenSettings}
+            className="inline-flex items-center gap-1.5 rounded-md border border-hairline bg-surface px-3 py-1.5 text-xs font-body font-bold text-ink-soft shadow-sm hover:bg-parchment hover:text-ink"
+          >
+            <Settings2 className="h-3.5 w-3.5" />
+            Poll settings
+          </button>
+        )}
       </div>
 
       <QuickFillBar

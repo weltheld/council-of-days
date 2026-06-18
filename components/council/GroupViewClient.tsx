@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Settings2 } from "lucide-react";
 import { AppHeader } from "@/components/council/AppHeader";
 import { RosterPanel } from "@/components/council/RosterPanel";
 import { CalendarPanel } from "@/components/council/CalendarPanel";
@@ -277,7 +276,7 @@ export function GroupViewClient(props: Props) {
         {/* Mobile-only slim band on top. */}
         <div className="lg:hidden">
           {group.bannerUrl ? (
-            <div className="relative h-[72px] w-full overflow-hidden border-b border-hairline">
+            <div className="relative mx-4 mt-3 h-[72px] overflow-hidden rounded-lg border border-hairline">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={group.bannerUrl}
@@ -310,7 +309,7 @@ export function GroupViewClient(props: Props) {
             {/* Desktop-only tall banner at the top of the sidebar. */}
             <div className="hidden lg:block">
               {group.bannerUrl ? (
-                <div className="relative h-64 w-full overflow-hidden border-b border-hairline">
+                <div className="relative mx-4 mt-4 h-64 overflow-hidden rounded-lg border border-hairline">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={group.bannerUrl}
@@ -331,19 +330,6 @@ export function GroupViewClient(props: Props) {
               )}
             </div>
 
-            {isCreator && (
-              <div className="border-b border-hairline/70 px-4 py-3 sm:px-5">
-                <button
-                  type="button"
-                  onClick={() => setSettingsOpen(true)}
-                  className="inline-flex items-center gap-1.5 rounded-md border border-hairline bg-surface px-3 py-1.5 text-xs font-body font-bold text-ink-soft shadow-sm hover:bg-parchment hover:text-ink"
-                >
-                  <Settings2 className="h-3.5 w-3.5" />
-                  Poll settings
-                </button>
-              </div>
-            )}
-
             <RosterPanel members={members} myUserId={props.currentUser.id} />
           </div>
           <div className="order-1 flex flex-col lg:order-2">
@@ -359,6 +345,8 @@ export function GroupViewClient(props: Props) {
               }
               onReset={handleResetMonth}
               onBestDayChange={setBestDayIso}
+              isCreator={isCreator}
+              onOpenSettings={() => setSettingsOpen(true)}
             />
             <div className="px-4 pb-4 sm:px-5 lg:hidden">
               <BestDaySummary
