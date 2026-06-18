@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { VenetianMask } from "lucide-react";
+import { Check, Minus, VenetianMask, X } from "lucide-react";
 import type { CalendarDay } from "@/lib/calendar";
 import type { Vote, VoteValue } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -143,24 +143,25 @@ export function DayCell({
         )}
       </div>
 
-      <div className="mt-auto pt-1.5">
-        <div className="flex items-center divide-x divide-ink/15">
-          {yesCount > 0 && (
-            <span className="px-1.5 first:pl-0 font-display text-xs font-bold leading-none text-[#2E4A38]">
-              {yesCount}
-            </span>
-          )}
-          {maybeCount > 0 && (
-            <span className="px-1.5 first:pl-0 font-display text-xs font-bold leading-none text-[#7A5A12]">
-              {maybeCount}
-            </span>
-          )}
-          {noCount > 0 && (
-            <span className="px-1.5 first:pl-0 font-display text-xs font-bold leading-none text-vote-no">
-              {noCount}
-            </span>
-          )}
-        </div>
+      <div className="mt-auto flex flex-wrap gap-1 pt-1.5">
+        {yesCount > 0 && (
+          <span className="inline-flex items-center gap-0.5 rounded px-1 py-0.5 font-display text-[10px] font-bold leading-none" style={{background:"#c8d8c0",color:"#1e3a28"}}>
+            <Check className="h-2.5 w-2.5" strokeWidth={3} />
+            {yesCount}
+          </span>
+        )}
+        {maybeCount > 0 && (
+          <span className="inline-flex items-center gap-0.5 rounded px-1 py-0.5 font-display text-[10px] font-bold leading-none" style={{background:"#e8d8a8",color:"#5a4010"}}>
+            <Minus className="h-2.5 w-2.5" strokeWidth={3} />
+            {maybeCount}
+          </span>
+        )}
+        {noCount > 0 && (
+          <span className="inline-flex items-center gap-0.5 rounded px-1 py-0.5 font-display text-[10px] font-bold leading-none" style={{background:"#e8c0c0",color:"#5a1820"}}>
+            <X className="h-2.5 w-2.5" strokeWidth={3} />
+            {noCount}
+          </span>
+        )}
       </div>
     </button>
 
