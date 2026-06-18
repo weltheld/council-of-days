@@ -137,23 +137,23 @@ export function DayCell({
       </div>
 
       <div className="mt-auto flex items-end justify-between gap-1 pt-1.5">
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1 sm:gap-1.5">
           {yesCount > 0 && (
             <span className="flex items-center gap-0.5 text-vote-yes">
-              <span className="h-1.5 w-1.5 rounded-full bg-vote-yes" />
-              <span className="font-display text-xs leading-none">{yesCount}</span>
+              <span className="hidden h-1.5 w-1.5 rounded-full bg-vote-yes sm:inline-block" />
+              <span className="font-display text-[11px] leading-none sm:text-xs">{yesCount}</span>
             </span>
           )}
           {maybeCount > 0 && (
             <span className="flex items-center gap-0.5 text-vote-maybe">
-              <span className="h-1.5 w-1.5 rounded-full bg-vote-maybe" />
-              <span className="font-display text-xs leading-none">{maybeCount}</span>
+              <span className="hidden h-1.5 w-1.5 rounded-full bg-vote-maybe sm:inline-block" />
+              <span className="font-display text-[11px] leading-none sm:text-xs">{maybeCount}</span>
             </span>
           )}
           {noCount > 0 && (
             <span className="flex items-center gap-0.5 text-vote-no">
-              <span className="h-1.5 w-1.5 rounded-full bg-vote-no" />
-              <span className="font-display text-xs leading-none">{noCount}</span>
+              <span className="hidden h-1.5 w-1.5 rounded-full bg-vote-no sm:inline-block" />
+              <span className="font-display text-[11px] leading-none sm:text-xs">{noCount}</span>
             </span>
           )}
         </div>
