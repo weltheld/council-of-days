@@ -58,18 +58,6 @@ export function RosterPanel({ members, myUserId }: Props) {
         })}
       </ul>
 
-      <div className="flex items-center gap-2.5 text-[11px] text-ink-soft">
-        {[
-          { label: "Yes", swatch: "bg-[#D5D9C4]" },
-          { label: "Maybe", swatch: "bg-[#EDE0BE]" },
-          { label: "No", swatch: "bg-[#E8D2C5]" },
-        ].map((l) => (
-          <span key={l.label} className="inline-flex items-center gap-1.5">
-            <span className={cn("h-3 w-3 rounded-sm border border-ink/15", l.swatch)} />
-            {l.label}
-          </span>
-        ))}
-      </div>
     </aside>
   );
 }

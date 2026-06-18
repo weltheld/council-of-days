@@ -14,7 +14,7 @@ export function BestDaySummary({
   if (!bestDayIso) {
     return (
       <div className="rounded-card border border-hairline/70 bg-surface/70 p-3 text-center text-xs text-ink-soft">
-        No leading day yet — the council awaits more voices.
+        No best day yet — the council awaits more voices.
       </div>
     );
   }
@@ -23,7 +23,7 @@ export function BestDaySummary({
   return (
     <div className="rounded-card border border-dm-gold/40 bg-dm-gold/10 p-3">
       <p className="text-[10px] font-display tracking-wider uppercase text-dm-gold">
-        Leading day
+        Best day
       </p>
       <p className="mt-1 text-sm text-ink">
         <span className="font-display">{weekday}</span>,{" "}
