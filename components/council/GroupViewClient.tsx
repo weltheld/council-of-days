@@ -26,6 +26,7 @@ import {
   removeMemberAction,
   setMemberDmAction,
 } from "@/app/g/[slug]/roleActions";
+import { setSessionAction } from "@/app/g/[slug]/sessionActions";
 
 type MemberWithUser = Member & { user: User };
 
@@ -34,6 +35,8 @@ type Props = {
   members: MemberWithUser[];
   votes: Vote[];
   currentUser: User;
+  /** ISO dates marked as game sessions. */
+  sessionDates: string[];
 };
 
 export function GroupViewClient(props: Props) {
@@ -45,6 +48,13 @@ export function GroupViewClient(props: Props) {
   const [bestDayIso, setBestDayIso] = useState<string | null>(null);
   const [currentMonthDays, setCurrentMonthDays] = useState<CalendarDay[]>(
     () => { const d = new Date(); return buildMonthGrid(d.getFullYear(), d.getMonth()); }
+  );
+  const [sessions, setSessions] = useState<Set<string>>(
+    () => new Set(props.sessionDates),
+  );
+  useEffect(
+    () => setSessions(new Set(props.sessionDates)),
+    [props.sessionDates],
   );
 
   // Keep local state in sync if the server re-renders with new props
@@ -282,6 +292,30 @@ export function GroupViewClient(props: Props) {
     handleResetMonth(isoDates);
   }, [currentMonthDays, handleResetMonth]);
 
+  const handleToggleSession = useCallback(
+    async (iso: string) => {
+      const willBeSession = !sessions.has(iso);
+      // Optimistic update.
+      setSessions((prev) => {
+        const next = new Set(prev);
+        if (willBeSession) next.add(iso);
+        else next.delete(iso);
+        return next;
+      });
+      const result = await setSessionAction(group.id, iso, willBeSession);
+      if (!result.ok) {
+        // Revert on failure.
+        setSessions((prev) => {
+          const next = new Set(prev);
+          if (willBeSession) next.delete(iso);
+          else next.add(iso);
+          return next;
+        });
+      }
+    },
+    [group.id, sessions],
+  );
+
   // Sorted members: DMs first.
   const sortedMembers = [...members].sort((a, b) =>
     a.isDm === b.isDm ? 0 : a.isDm ? -1 : 1,
@@ -386,6 +420,8 @@ export function GroupViewClient(props: Props) {
                 onDaysChange={setCurrentMonthDays}
                 isCreator={isCreator}
                 onOpenSettings={() => setSettingsOpen(true)}
+                sessionDates={sessions}
+                onToggleSession={isCreator ? handleToggleSession : undefined}
                 belowHeader={
                   <QuickFillBar
                     viableWeekdays={group.viableWeekdays}
@@ -415,6 +451,8 @@ export function GroupViewClient(props: Props) {
                 onDaysChange={setCurrentMonthDays}
                 isCreator={isCreator}
                 onOpenSettings={() => setSettingsOpen(true)}
+                sessionDates={sessions}
+                onToggleSession={isCreator ? handleToggleSession : undefined}
               />
             </div>
           </div>

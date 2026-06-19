@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Minus, VenetianMask, X } from "lucide-react";
+import { Check, Minus, Plus, VenetianMask, X } from "lucide-react";
 import type { CalendarDay } from "@/lib/calendar";
 import type { Vote, VoteValue } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { WaxSeal } from "./WaxSeal";
 
 type Props = {
   day: CalendarDay;
@@ -16,6 +17,11 @@ type Props = {
   /** userId → character name, for the hover tooltip. */
   nameByUserId: Record<string, string>;
   onCycle: (date: string) => void;
+  /** Whether this date is marked as a game session. */
+  isSession?: boolean;
+  /** Creator can stamp / unstamp session days. */
+  isCreator?: boolean;
+  onToggleSession?: (iso: string) => void;
 };
 
 export function nextVoteValue(current: VoteValue | undefined): VoteValue | null {
@@ -34,6 +40,9 @@ export function DayCell({
   isViableWeekday,
   nameByUserId,
   onCycle,
+  isSession = false,
+  isCreator = false,
+  onToggleSession,
 }: Props) {
   // Tooltip: every member, name coloured by their vote; non-voters greyed.
   const voteByUserId = new Map(votes.map((v) => [v.userId, v.value]));
@@ -143,7 +152,12 @@ export function DayCell({
         )}
       </div>
 
-      <div className="mt-auto flex flex-wrap gap-1 pt-1.5">
+      <div
+        className={cn(
+          "mt-auto flex flex-wrap gap-1 pt-1.5",
+          isSession && "pr-7",
+        )}
+      >
         {yesCount > 0 && (
           <span className="inline-flex items-center gap-0.5 rounded px-1 py-0.5 font-display text-[10px] font-bold leading-none" style={{background:"#c8d8c0",color:"#1e3a28"}}>
             <Check className="h-2.5 w-2.5" strokeWidth={3} />
@@ -164,6 +178,39 @@ export function DayCell({
         )}
       </div>
     </button>
+
+      {/* Session wax seal — visible to everyone, gold upcoming / wine played */}
+      {isSession && day.inCurrentMonth && (
+        <div className="pointer-events-none absolute bottom-1 right-1 z-10">
+          <WaxSeal played={day.isPast} />
+        </div>
+      )}
+
+      {/* Owner control: remove an existing session (× over the seal on hover) */}
+      {isCreator && onToggleSession && isSession && day.inCurrentMonth && (
+        <button
+          type="button"
+          onClick={() => onToggleSession(day.iso)}
+          className="absolute right-0 top-0 z-20 inline-flex h-5 w-5 items-center justify-center rounded-full border border-hairline bg-surface text-ink-soft opacity-0 shadow-sm transition hover:text-vote-no group-hover:opacity-100"
+          aria-label={`Remove game session on ${day.iso}`}
+          title="Remove game session"
+        >
+          <X className="h-3 w-3" strokeWidth={2.5} />
+        </button>
+      )}
+
+      {/* Owner control: stamp a new session (faint seal + on hover) */}
+      {isCreator && onToggleSession && !isSession && day.inCurrentMonth && (
+        <button
+          type="button"
+          onClick={() => onToggleSession(day.iso)}
+          className="absolute bottom-1 right-1 z-20 inline-flex h-[26px] w-[26px] items-center justify-center rounded-full border border-dashed border-dm-gold/70 bg-dm-gold/15 text-dm-gold opacity-0 transition hover:bg-dm-gold/25 group-hover:opacity-100"
+          aria-label={`Mark ${day.iso} as a game session`}
+          title="Mark as game session"
+        >
+          <Plus className="h-3.5 w-3.5" strokeWidth={2.5} />
+        </button>
+      )}
 
       {day.inCurrentMonth && isViableWeekday && tooltipRows.length > 0 && cursor && (
         <div

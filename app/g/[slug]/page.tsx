@@ -31,17 +31,22 @@ export default async function GroupPage({
     .maybeSingle();
   if (!campaign) notFound();
 
-  // Load members + votes in parallel; then fetch profiles in one batch.
-  const [{ data: membersRows }, { data: votesRows }] = await Promise.all([
-    supabase
-      .from("campaign_members")
-      .select("campaign_id, user_id, role, is_dm, joined_at")
-      .eq("campaign_id", campaign.id),
-    supabase
-      .from("votes")
-      .select("*")
-      .eq("campaign_id", campaign.id),
-  ]);
+  // Load members + votes + sessions in parallel; then fetch profiles in one batch.
+  const [{ data: membersRows }, { data: votesRows }, { data: sessionRows }] =
+    await Promise.all([
+      supabase
+        .from("campaign_members")
+        .select("campaign_id, user_id, role, is_dm, joined_at")
+        .eq("campaign_id", campaign.id),
+      supabase
+        .from("votes")
+        .select("*")
+        .eq("campaign_id", campaign.id),
+      supabase
+        .from("campaign_sessions")
+        .select("date")
+        .eq("campaign_id", campaign.id),
+    ]);
 
   const memberUserIds = (membersRows ?? []).map((m) => m.user_id);
   const { data: profileRows } = memberUserIds.length
@@ -115,6 +120,7 @@ export default async function GroupPage({
         user: users.find((u) => u.id === m.userId)!,
       }))}
       votes={votes}
+      sessionDates={(sessionRows ?? []).map((s) => s.date)}
       currentUser={{
         id: user.id,
         email: user.email ?? "",

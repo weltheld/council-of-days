@@ -56,6 +56,13 @@ export type VoteRow = {
   updated_at: string;
 };
 
+export type CampaignSessionRow = {
+  campaign_id: string;
+  date: string;
+  note: string;
+  created_at: string;
+};
+
 // Canonical shape expected by @supabase/supabase-js generics.
 // Each table needs Row / Insert / Update / Relationships.
 // Public schema also needs Views / Functions / Enums / CompositeTypes.
@@ -165,6 +172,22 @@ export type Database = {
           date?: string;
           value?: VoteValueDb;
           updated_at?: string;
+        };
+        Relationships: [];
+      };
+      campaign_sessions: {
+        Row: CampaignSessionRow;
+        Insert: {
+          campaign_id: string;
+          date: string;
+          note?: string;
+          created_at?: string;
+        };
+        Update: {
+          campaign_id?: string;
+          date?: string;
+          note?: string;
+          created_at?: string;
         };
         Relationships: [];
       };

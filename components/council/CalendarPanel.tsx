@@ -32,6 +32,10 @@ type Props = {
   onOpenSettings?: () => void;
   /** Optional content rendered directly below the month header (e.g. quick fill on mobile). */
   belowHeader?: React.ReactNode;
+  /** ISO dates marked as game sessions. */
+  sessionDates?: Set<string>;
+  /** Creator-only: toggle a date's session mark. */
+  onToggleSession?: (iso: string) => void;
 };
 
 export function CalendarPanel({
@@ -48,6 +52,8 @@ export function CalendarPanel({
   isCreator,
   onOpenSettings,
   belowHeader,
+  sessionDates,
+  onToggleSession,
 }: Props) {
   const start = initialMonth ?? defaultMonth();
   const [{ year, monthIndex }, setMonth] = useState(start);
@@ -151,6 +157,9 @@ export function CalendarPanel({
             nameByUserId={nameByUserId}
             isBestDay={bestDayIso === d.iso}
             isViableWeekday={viableSet.has(d.weekday as Weekday)}
+            isSession={sessionDates?.has(d.iso) ?? false}
+            isCreator={isCreator}
+            onToggleSession={onToggleSession}
             onCycle={(iso) => {
               const current = (monthVotes[iso] ?? []).find(
                 (v) => v.userId === myUserId,
