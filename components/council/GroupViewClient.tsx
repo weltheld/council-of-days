@@ -7,7 +7,7 @@ import { CalendarPanel } from "@/components/council/CalendarPanel";
 import { OwnerSettings } from "@/components/council/OwnerSettings";
 import { BestDaySummary } from "@/components/council/BestDaySummary";
 import { QuickFillBar } from "@/components/council/QuickFillBar";
-import { Avatar } from "@/components/council/Avatar";
+import { BannerParty } from "@/components/council/BannerParty";
 import type { CalendarDay } from "@/lib/calendar";
 import { buildMonthGrid } from "@/lib/calendar";
 import type {
@@ -325,27 +325,11 @@ export function GroupViewClient(props: Props) {
             )}
 
             {/* Party avatars — top-left */}
-            <div className="absolute left-4 top-3 flex items-center sm:left-5">
-              {sortedMembers.map((m, i) => (
-                <div
-                  key={m.userId}
-                  className="relative -mr-2 shrink-0"
-                  style={{ zIndex: sortedMembers.length - i }}
-                  title={m.user.characterName || m.user.displayName || m.user.email}
-                >
-                  <Avatar
-                    src={m.user.avatarUrl}
-                    alt={m.user.characterName || m.user.displayName || ""}
-                    size={28}
-                    className={cn(
-                      "ring-2",
-                      group.bannerUrl
-                        ? m.isDm ? "ring-dm-gold" : "ring-white/25"
-                        : m.isDm ? "ring-dm-gold" : "ring-hairline",
-                    )}
-                  />
-                </div>
-              ))}
+            <div className="absolute left-4 top-3 sm:left-5">
+              <BannerParty
+                members={sortedMembers}
+                hasBanner={!!group.bannerUrl}
+              />
             </div>
 
             {/* Campaign name — bottom-left */}
@@ -384,15 +368,6 @@ export function GroupViewClient(props: Props) {
                 yesCount={leadingYesCount}
                 memberCount={members.length}
               />
-              {isCreator && (
-                <button
-                  type="button"
-                  onClick={() => setSettingsOpen(true)}
-                  className="inline-flex items-center gap-1.5 rounded-md border border-hairline bg-surface px-3 py-2 text-xs font-body font-bold text-ink-soft shadow-sm hover:bg-parchment hover:text-ink"
-                >
-                  <span className="font-display tracking-wider uppercase">Poll settings</span>
-                </button>
-              )}
             </div>
           </aside>
 
