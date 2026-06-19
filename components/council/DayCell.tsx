@@ -179,25 +179,27 @@ export function DayCell({
       </div>
     </button>
 
-      {/* Session wax seal — visible to everyone, gold upcoming / wine played */}
-      {isSession && day.inCurrentMonth && (
-        <div className="pointer-events-none absolute bottom-1 right-1 z-10">
-          <WaxSeal played={day.isPast} />
-        </div>
-      )}
-
-      {/* Owner control: remove an existing session (× over the seal on hover) */}
-      {isCreator && onToggleSession && isSession && day.inCurrentMonth && (
-        <button
-          type="button"
-          onClick={() => onToggleSession(day.iso)}
-          className="absolute right-0 top-0 z-20 inline-flex h-5 w-5 items-center justify-center rounded-full border border-hairline bg-surface text-ink-soft opacity-0 shadow-sm transition hover:text-vote-no group-hover:opacity-100"
-          aria-label={`Remove game session on ${day.iso}`}
-          title="Remove game session"
-        >
-          <X className="h-3 w-3" strokeWidth={2.5} />
-        </button>
-      )}
+      {/* Session crest medallion. Owners can click it to remove the session
+          (an × fades in over the coin on hover); everyone else just sees it. */}
+      {isSession && day.inCurrentMonth &&
+        (isCreator && onToggleSession ? (
+          <button
+            type="button"
+            onClick={() => onToggleSession(day.iso)}
+            className="group/seal absolute bottom-1 right-1 z-20 inline-flex items-center justify-center rounded-full"
+            aria-label={`Remove game session on ${day.iso}`}
+            title="Click to remove this session"
+          >
+            <WaxSeal played={day.isPast} />
+            <span className="pointer-events-none absolute inset-[4px] inline-flex items-center justify-center rounded-full bg-black/50 opacity-0 transition group-hover/seal:opacity-100">
+              <X className="h-3.5 w-3.5 text-white" strokeWidth={2.75} />
+            </span>
+          </button>
+        ) : (
+          <div className="pointer-events-none absolute bottom-1 right-1 z-10">
+            <WaxSeal played={day.isPast} />
+          </div>
+        ))}
 
       {/* Owner control: stamp a new session (faint seal + on hover) */}
       {isCreator && onToggleSession && !isSession && day.inCurrentMonth && (
