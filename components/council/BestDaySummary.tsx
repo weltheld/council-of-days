@@ -23,7 +23,7 @@ export function BestDaySummary({
   return (
     <div className="rounded-card border border-dm-gold/40 bg-dm-gold/10 p-3">
       <p className="text-[10px] font-display tracking-wider uppercase text-dm-gold">
-        Best day
+        Next best day
       </p>
       <p className="mt-1 text-sm text-ink">
         <span className="font-display">{weekday}</span>,{" "}

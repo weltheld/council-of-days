@@ -9,9 +9,9 @@ import {
   nextMonth,
   prevMonth,
 } from "@/lib/calendar";
+import type { CalendarDay } from "@/lib/calendar";
 import type { Vote, VoteValue, Weekday } from "@/lib/types";
 import { DayCell } from "./DayCell";
-import { QuickFillBar } from "./QuickFillBar";
 
 const WEEKDAYS = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 
@@ -22,11 +22,10 @@ type Props = {
   votes: Vote[];
   viableWeekdays: Weekday[];
   onCycleDay: (date: string, currentValue: VoteValue | undefined) => void;
-  onBulkFill: (weekdays: Weekday[], value: VoteValue, isoDates: string[]) => void;
-  /** Clear the current user's votes for every day shown in the active month. */
-  onReset: (isoDates: string[]) => void;
-  /** Optional callback so the parent can also know the best day (for the roster). */
+  /** Optional callback so the parent can also know the best day (for the sidebar). */
   onBestDayChange?: (iso: string | null) => void;
+  /** Expose current month days so parent can render QuickFillBar externally. */
+  onDaysChange?: (days: CalendarDay[]) => void;
   onMonthChange?: (year: number, monthIndex: number) => void;
   initialMonth?: { year: number; monthIndex: number };
   isCreator?: boolean;
@@ -40,9 +39,8 @@ export function CalendarPanel({
   votes,
   viableWeekdays,
   onCycleDay,
-  onBulkFill,
-  onReset,
   onBestDayChange,
+  onDaysChange,
   onMonthChange,
   initialMonth,
   isCreator,
@@ -81,25 +79,21 @@ export function CalendarPanel({
     return best?.iso ?? null;
   }, [days, monthVotes, dmUserIds, viableSet]);
 
-  // Surface best-day to parent (for roster panel + footer).
-  const lastReportedRef = useMemo(() => ({ value: null as string | null }), []);
-  if (onBestDayChange && lastReportedRef.value !== bestDayIso) {
-    lastReportedRef.value = bestDayIso;
+  // Surface best-day and current days to parent.
+  const lastReportedRef = useMemo(() => ({ bestDay: null as string | null, days: null as CalendarDay[] | null }), []);
+  if (onBestDayChange && lastReportedRef.bestDay !== bestDayIso) {
+    lastReportedRef.bestDay = bestDayIso;
     queueMicrotask(() => onBestDayChange(bestDayIso));
+  }
+  if (onDaysChange && lastReportedRef.days !== days) {
+    lastReportedRef.days = days;
+    queueMicrotask(() => onDaysChange(days));
   }
 
   function go(delta: -1 | 1) {
     const m = delta === -1 ? prevMonth(year, monthIndex) : nextMonth(year, monthIndex);
     setMonth(m);
     onMonthChange?.(m.year, m.monthIndex);
-  }
-
-  function bulkApply(weekdays: Weekday[], value: VoteValue) {
-    const set = new Set(weekdays);
-    const isoDates = days
-      .filter((d) => d.inCurrentMonth && set.has(d.weekday as Weekday))
-      .map((d) => d.iso);
-    onBulkFill(weekdays, value, isoDates);
   }
 
   return (
@@ -134,16 +128,6 @@ export function CalendarPanel({
           </button>
         )}
       </div>
-
-      <QuickFillBar
-        viableWeekdays={viableWeekdays}
-        onApply={bulkApply}
-        onReset={() =>
-          onReset(
-            days.filter((d) => d.inCurrentMonth).map((d) => d.iso),
-          )
-        }
-      />
 
       <div className="grid grid-cols-7 gap-1 text-center small-caps">
         {WEEKDAYS.map((w) => (

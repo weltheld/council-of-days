@@ -3,10 +3,13 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AppHeader } from "@/components/council/AppHeader";
-import { RosterPanel } from "@/components/council/RosterPanel";
 import { CalendarPanel } from "@/components/council/CalendarPanel";
 import { OwnerSettings } from "@/components/council/OwnerSettings";
 import { BestDaySummary } from "@/components/council/BestDaySummary";
+import { QuickFillBar } from "@/components/council/QuickFillBar";
+import { Avatar } from "@/components/council/Avatar";
+import type { CalendarDay } from "@/lib/calendar";
+import { buildMonthGrid } from "@/lib/calendar";
 import type {
   BackgroundScene,
   Group,
@@ -40,6 +43,9 @@ export function GroupViewClient(props: Props) {
   const [votes, setVotes] = useState<Vote[]>(props.votes);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [bestDayIso, setBestDayIso] = useState<string | null>(null);
+  const [currentMonthDays, setCurrentMonthDays] = useState<CalendarDay[]>(
+    () => { const d = new Date(); return buildMonthGrid(d.getFullYear(), d.getMonth()); }
+  );
 
   // Keep local state in sync if the server re-renders with new props
   // (e.g. after router.refresh()).
@@ -257,6 +263,30 @@ export function GroupViewClient(props: Props) {
     [group.id, members, router],
   );
 
+  // QuickFill handlers for use in the sidebar (need current month days).
+  const handleBulkFillFromSidebar = useCallback(
+    (weekdays: Weekday[], value: VoteValue) => {
+      const set = new Set(weekdays);
+      const isoDates = currentMonthDays
+        .filter((d) => d.inCurrentMonth && set.has(d.weekday as Weekday))
+        .map((d) => d.iso);
+      handleBulkFill(weekdays, value, isoDates);
+    },
+    [currentMonthDays, handleBulkFill],
+  );
+
+  const handleResetFromSidebar = useCallback(() => {
+    const isoDates = currentMonthDays
+      .filter((d) => d.inCurrentMonth)
+      .map((d) => d.iso);
+    handleResetMonth(isoDates);
+  }, [currentMonthDays, handleResetMonth]);
+
+  // Sorted members: DMs first.
+  const sortedMembers = [...members].sort((a, b) =>
+    a.isDm === b.isDm ? 0 : a.isDm ? -1 : 1,
+  );
+
   return (
     <div
       className={cn(
@@ -273,86 +303,147 @@ export function GroupViewClient(props: Props) {
           avatarUrl={props.currentUser.avatarUrl}
         />
 
-        {/* D4 banner card — inset below the header with uniform spacing */}
-        {group.bannerUrl ? (
-          <div className="mx-auto w-full max-w-[1440px] px-4 pt-4 sm:px-5">
-            <div className="relative h-32 overflow-hidden rounded-xl shadow-parchment sm:h-40">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={group.bannerUrl}
-                alt=""
-                className="absolute inset-0 h-full w-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/10 to-black/65" />
-              <div className="absolute inset-x-0 bottom-0 px-5 pb-4">
+        {/* Banner card — avatars top-left, campaign name bottom-left */}
+        <div className="mx-auto w-full max-w-[1440px] px-4 pt-4 sm:px-5">
+          <div className={cn(
+            "relative overflow-hidden rounded-xl shadow-parchment",
+            group.bannerUrl ? "h-28 sm:h-36" : "flex items-end pb-3 pt-4 min-h-[56px]",
+          )}>
+            {group.bannerUrl && (
+              <>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={group.bannerUrl}
+                  alt=""
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
+                {/* top scrim for avatars */}
+                <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-black/5 to-transparent" />
+                {/* bottom scrim for title */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent" />
+              </>
+            )}
+
+            {/* Party avatars — top-left */}
+            <div className="absolute left-4 top-3 flex items-center sm:left-5">
+              {sortedMembers.map((m, i) => (
+                <div
+                  key={m.userId}
+                  className="relative -mr-2 shrink-0"
+                  style={{ zIndex: sortedMembers.length - i }}
+                  title={m.user.characterName || m.user.displayName || m.user.email}
+                >
+                  <Avatar
+                    src={m.user.avatarUrl}
+                    alt={m.user.characterName || m.user.displayName || ""}
+                    size={28}
+                    className={cn(
+                      "ring-2",
+                      group.bannerUrl
+                        ? m.isDm ? "ring-dm-gold" : "ring-white/25"
+                        : m.isDm ? "ring-dm-gold" : "ring-hairline",
+                    )}
+                  />
+                </div>
+              ))}
+            </div>
+
+            {/* Campaign name — bottom-left */}
+            {group.bannerUrl ? (
+              <div className="absolute inset-x-0 bottom-0 px-4 pb-3 sm:px-5">
                 <h1 className="truncate border-l-2 border-dm-gold pl-3 font-display text-xl font-bold text-surface drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] sm:text-2xl">
                   {group.name}
                 </h1>
               </div>
-            </div>
+            ) : (
+              <h1 className="truncate pl-4 font-display text-2xl font-bold text-ink sm:pl-5">
+                {group.name}
+              </h1>
+            )}
           </div>
-        ) : (
-          <div className="mx-auto w-full max-w-[1440px] px-4 pt-4 sm:px-5">
-            <h1 className="truncate font-display text-2xl font-bold text-ink">
-              {group.name}
-            </h1>
-          </div>
-        )}
+        </div>
 
         <main
           className={cn(
             "mx-auto flex w-full max-w-[1440px] flex-1 flex-col",
             settingsOpen
-              ? "lg:grid lg:grid-cols-[332px_1fr_300px]"
-              : "lg:grid lg:grid-cols-[332px_1fr]",
+              ? "lg:grid lg:grid-cols-[280px_1fr_300px]"
+              : "lg:grid lg:grid-cols-[280px_1fr]",
           )}
         >
-          <div className="order-2 border-b border-hairline/70 lg:order-1 lg:border-b-0 lg:border-r">
-            <RosterPanel members={members} myUserId={props.currentUser.id} />
-            <div className="hidden flex-col gap-3 px-4 pb-4 sm:px-5 lg:flex">
+          {/* Left sidebar: quick fill + best day (desktop only) */}
+          <aside className="hidden border-r border-hairline/70 lg:block">
+            <div className="flex flex-col gap-4 p-5">
+              <QuickFillBar
+                viableWeekdays={group.viableWeekdays}
+                onApply={handleBulkFillFromSidebar}
+                onReset={handleResetFromSidebar}
+              />
               <BestDaySummary
                 bestDayIso={bestDayIso}
                 yesCount={leadingYesCount}
                 memberCount={members.length}
               />
-              <div className="flex items-center gap-2.5 text-[11px] text-ink-soft">
-                {[
-                  { label: "Yes", swatch: "bg-[#D5D9C4]" },
-                  { label: "Maybe", swatch: "bg-[#EDE0BE]" },
-                  { label: "No", swatch: "bg-[#E8D2C5]" },
-                ].map((l) => (
-                  <span key={l.label} className="inline-flex items-center gap-1.5">
-                    <span className={cn("h-3 w-3 rounded-sm border border-ink/15", l.swatch)} />
-                    {l.label}
-                  </span>
-                ))}
+              {isCreator && (
+                <button
+                  type="button"
+                  onClick={() => setSettingsOpen(true)}
+                  className="inline-flex items-center gap-1.5 rounded-md border border-hairline bg-surface px-3 py-2 text-xs font-body font-bold text-ink-soft shadow-sm hover:bg-parchment hover:text-ink"
+                >
+                  <span className="font-display tracking-wider uppercase">Poll settings</span>
+                </button>
+              )}
+            </div>
+          </aside>
+
+          {/* Calendar column */}
+          <div className="flex flex-col">
+            {/* Mobile: quick fill below calendar header */}
+            <div className="lg:hidden">
+              <CalendarPanel
+                dmUserIds={dmUserIds}
+                nameByUserId={nameByUserId}
+                myUserId={props.currentUser.id}
+                votes={votes}
+                viableWeekdays={group.viableWeekdays}
+                onCycleDay={handleCycle}
+                onBestDayChange={setBestDayIso}
+                onDaysChange={setCurrentMonthDays}
+                isCreator={isCreator}
+                onOpenSettings={() => setSettingsOpen(true)}
+              />
+              <div className="px-4 pb-2 sm:px-5">
+                <QuickFillBar
+                  viableWeekdays={group.viableWeekdays}
+                  onApply={handleBulkFillFromSidebar}
+                  onReset={handleResetFromSidebar}
+                />
+              </div>
+              <div className="px-4 pb-4 sm:px-5">
+                <BestDaySummary
+                  bestDayIso={bestDayIso}
+                  yesCount={leadingYesCount}
+                  memberCount={members.length}
+                />
               </div>
             </div>
-          </div>
-          <div className="order-1 flex flex-col lg:order-2">
-            <CalendarPanel
-              dmUserIds={dmUserIds}
-              nameByUserId={nameByUserId}
-              myUserId={props.currentUser.id}
-              votes={votes}
-              viableWeekdays={group.viableWeekdays}
-              onCycleDay={handleCycle}
-              onBulkFill={(w, value, isoDates) =>
-                handleBulkFill(w, value, isoDates)
-              }
-              onReset={handleResetMonth}
-              onBestDayChange={setBestDayIso}
-              isCreator={isCreator}
-              onOpenSettings={() => setSettingsOpen(true)}
-            />
-            <div className="px-4 pb-4 sm:px-5 lg:hidden">
-              <BestDaySummary
-                bestDayIso={bestDayIso}
-                yesCount={leadingYesCount}
-                memberCount={members.length}
+            {/* Desktop calendar (no QuickFillBar inside) */}
+            <div className="hidden lg:flex lg:flex-col lg:flex-1">
+              <CalendarPanel
+                dmUserIds={dmUserIds}
+                nameByUserId={nameByUserId}
+                myUserId={props.currentUser.id}
+                votes={votes}
+                viableWeekdays={group.viableWeekdays}
+                onCycleDay={handleCycle}
+                onBestDayChange={setBestDayIso}
+                onDaysChange={setCurrentMonthDays}
+                isCreator={isCreator}
+                onOpenSettings={() => setSettingsOpen(true)}
               />
             </div>
           </div>
+
           {settingsOpen && isCreator && (
             <aside className="hidden border-l border-hairline/70 bg-parchment/30 lg:order-3 lg:block">
               <OwnerSettings
