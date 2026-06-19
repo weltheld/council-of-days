@@ -10,6 +10,10 @@ import { cn } from "@/lib/utils";
 
 type MemberWithUser = Member & { user: User };
 
+// Keep in sync with the tooltip's `w-44` (11rem = 176px).
+const TOOLTIP_WIDTH = 176;
+const VIEWPORT_MARGIN = 8;
+
 type Props = {
   /** Already sorted (DMs first). */
   members: MemberWithUser[];
@@ -37,11 +41,14 @@ export function BannerParty({ members, hasBanner }: Props) {
               style={{ zIndex: members.length - i }}
               onMouseEnter={(e) => {
                 const rect = e.currentTarget.getBoundingClientRect();
-                setTooltip({
-                  member: m,
-                  x: rect.left + rect.width / 2,
-                  y: rect.bottom,
-                });
+                const half = TOOLTIP_WIDTH / 2;
+                const center = rect.left + rect.width / 2;
+                // Clamp the center so the fixed-width card never leaves the viewport.
+                const x = Math.max(
+                  half + VIEWPORT_MARGIN,
+                  Math.min(center, window.innerWidth - half - VIEWPORT_MARGIN),
+                );
+                setTooltip({ member: m, x, y: rect.bottom });
               }}
               onMouseLeave={() => setTooltip(null)}
             >
