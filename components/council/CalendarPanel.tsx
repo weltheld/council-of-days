@@ -30,6 +30,8 @@ type Props = {
   initialMonth?: { year: number; monthIndex: number };
   isCreator?: boolean;
   onOpenSettings?: () => void;
+  /** Optional content rendered directly below the month header (e.g. quick fill on mobile). */
+  belowHeader?: React.ReactNode;
 };
 
 export function CalendarPanel({
@@ -45,6 +47,7 @@ export function CalendarPanel({
   initialMonth,
   isCreator,
   onOpenSettings,
+  belowHeader,
 }: Props) {
   const start = initialMonth ?? defaultMonth();
   const [{ year, monthIndex }, setMonth] = useState(start);
@@ -128,6 +131,8 @@ export function CalendarPanel({
           </button>
         )}
       </div>
+
+      {belowHeader}
 
       <div className="grid grid-cols-7 gap-1 text-center small-caps">
         {WEEKDAYS.map((w) => (

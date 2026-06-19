@@ -373,7 +373,7 @@ export function GroupViewClient(props: Props) {
 
           {/* Calendar column */}
           <div className="flex flex-col">
-            {/* Mobile: quick fill below calendar header */}
+            {/* Mobile: quick fill directly below the month selector */}
             <div className="lg:hidden">
               <CalendarPanel
                 dmUserIds={dmUserIds}
@@ -386,14 +386,14 @@ export function GroupViewClient(props: Props) {
                 onDaysChange={setCurrentMonthDays}
                 isCreator={isCreator}
                 onOpenSettings={() => setSettingsOpen(true)}
+                belowHeader={
+                  <QuickFillBar
+                    viableWeekdays={group.viableWeekdays}
+                    onApply={handleBulkFillFromSidebar}
+                    onReset={handleResetFromSidebar}
+                  />
+                }
               />
-              <div className="px-4 pb-2 sm:px-5">
-                <QuickFillBar
-                  viableWeekdays={group.viableWeekdays}
-                  onApply={handleBulkFillFromSidebar}
-                  onReset={handleResetFromSidebar}
-                />
-              </div>
               <div className="px-4 pb-4 sm:px-5">
                 <BestDaySummary
                   bestDayIso={bestDayIso}
