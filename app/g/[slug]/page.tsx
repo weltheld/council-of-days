@@ -7,6 +7,7 @@ import type {
   Member,
   User,
   Vote,
+  VoteValue,
   Weekday,
 } from "@/lib/types";
 
@@ -115,6 +116,50 @@ export default async function GroupPage({
     value: v.value,
   }));
 
+  // ---- Cross-campaign awareness (for THIS user only) -------------------
+  // The user's OTHER campaigns let us surface, on this calendar, the days
+  // they're already booked (play-dates elsewhere) and — behind a toggle —
+  // their own yes/maybe votes elsewhere, so they can align schedules.
+  // All of these reads are permitted by the existing member-scoped RLS.
+  const { data: myMembershipRows } = await supabase
+    .from("campaign_members")
+    .select("campaign_id")
+    .eq("user_id", user.id);
+  const otherCampaignIds = (myMembershipRows ?? [])
+    .map((r) => r.campaign_id)
+    .filter((id) => id !== campaign.id);
+
+  let crossSessions: { date: string; campaignName: string }[] = [];
+  let crossVotes: { date: string; value: VoteValue; campaignName: string }[] = [];
+  if (otherCampaignIds.length) {
+    const [{ data: otherCamps }, { data: otherSess }, { data: otherVotes }] =
+      await Promise.all([
+        supabase.from("campaigns").select("id, name").in("id", otherCampaignIds),
+        supabase
+          .from("campaign_sessions")
+          .select("campaign_id, date")
+          .in("campaign_id", otherCampaignIds),
+        supabase
+          .from("votes")
+          .select("campaign_id, date, value")
+          .eq("user_id", user.id)
+          .in("campaign_id", otherCampaignIds)
+          .in("value", ["yes", "maybe"]),
+      ]);
+    const nameById = new Map(
+      (otherCamps ?? []).map((c) => [c.id, c.name] as const),
+    );
+    crossSessions = (otherSess ?? []).map((s) => ({
+      date: s.date,
+      campaignName: nameById.get(s.campaign_id) ?? "Another campaign",
+    }));
+    crossVotes = (otherVotes ?? []).map((v) => ({
+      date: v.date,
+      value: v.value as VoteValue,
+      campaignName: nameById.get(v.campaign_id) ?? "Another campaign",
+    }));
+  }
+
   // The current user's GLOBAL profile (drives the top-bar chip + its editor,
   // and serves as the fallback option in the per-campaign character dialog).
   const myProfile = profileById.get(user.id);
@@ -128,6 +173,8 @@ export default async function GroupPage({
       }))}
       votes={votes}
       sessionDates={(sessionRows ?? []).map((s) => s.date)}
+      crossSessions={crossSessions}
+      crossVotes={crossVotes}
       currentUser={{
         id: user.id,
         email: user.email ?? "",

@@ -36,6 +36,12 @@ type Props = {
   sessionDates?: Set<string>;
   /** Creator-only: toggle a date's session mark. */
   onToggleSession?: (iso: string) => void;
+  /** date → names of OTHER campaigns with a play-date that day. */
+  conflictByDate?: Map<string, string[]>;
+  /** date → the user's yes/maybe votes in OTHER campaigns. */
+  alignByDate?: Map<string, { value: VoteValue; campaignName: string }[]>;
+  /** Whether the align overlay is active. */
+  showAlign?: boolean;
 };
 
 export function CalendarPanel({
@@ -54,6 +60,9 @@ export function CalendarPanel({
   belowHeader,
   sessionDates,
   onToggleSession,
+  conflictByDate,
+  alignByDate,
+  showAlign,
 }: Props) {
   const start = initialMonth ?? defaultMonth();
   const [{ year, monthIndex }, setMonth] = useState(start);
@@ -160,6 +169,8 @@ export function CalendarPanel({
             isSession={sessionDates?.has(d.iso) ?? false}
             isCreator={isCreator}
             onToggleSession={onToggleSession}
+            conflictCampaigns={conflictByDate?.get(d.iso)}
+            alignVotes={showAlign ? alignByDate?.get(d.iso) : undefined}
             onCycle={(iso) => {
               const current = (monthVotes[iso] ?? []).find(
                 (v) => v.userId === myUserId,

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Minus, Plus, VenetianMask, X } from "lucide-react";
+import { Check, Minus, Plus, Swords, VenetianMask, X } from "lucide-react";
 import type { CalendarDay } from "@/lib/calendar";
 import type { Vote, VoteValue } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -22,6 +22,10 @@ type Props = {
   /** Creator can stamp / unstamp session days. */
   isCreator?: boolean;
   onToggleSession?: (iso: string) => void;
+  /** Names of OTHER campaigns with a play-date on this day (the user is booked). */
+  conflictCampaigns?: string[];
+  /** The user's yes/maybe votes in OTHER campaigns (only when the align overlay is on). */
+  alignVotes?: { value: VoteValue; campaignName: string }[];
 };
 
 export function nextVoteValue(current: VoteValue | undefined): VoteValue | null {
@@ -43,7 +47,11 @@ export function DayCell({
   isSession = false,
   isCreator = false,
   onToggleSession,
+  conflictCampaigns,
+  alignVotes,
 }: Props) {
+  const hasConflict = !!conflictCampaigns?.length;
+  const hasAlign = !!alignVotes?.length;
   // Tooltip: every member, name coloured by their vote; non-voters greyed.
   const voteByUserId = new Map(votes.map((v) => [v.userId, v.value]));
   const rank: Record<string, number> = { yes: 0, maybe: 1, no: 2 };
@@ -141,14 +149,35 @@ export function DayCell({
             </span>
           )}
         </div>
-        {dmFree && day.inCurrentMonth && (
-          <span
-            title="The Dungeon Master is available this day"
-            aria-label="The Dungeon Master is available this day"
-            className="inline-flex"
-          >
-            <VenetianMask className="h-3 w-3 text-dm-gold" />
-          </span>
+        {day.inCurrentMonth && (hasAlign || hasConflict || dmFree) && (
+          <div className="flex items-center gap-1">
+            {hasAlign && (
+              <span className="inline-flex items-center gap-0.5">
+                {alignVotes!.slice(0, 3).map((av, i) => (
+                  <span
+                    key={i}
+                    className={cn(
+                      "h-1.5 w-1.5 rounded-full ring-1 ring-white/70",
+                      av.value === "yes" ? "bg-vote-yes" : "bg-vote-maybe",
+                    )}
+                  />
+                ))}
+              </span>
+            )}
+            {hasConflict && (
+              <span className="inline-flex" aria-label="Booked in another campaign">
+                <Swords className="h-3 w-3 text-wine" />
+              </span>
+            )}
+            {dmFree && (
+              <span
+                aria-label="The Dungeon Master is available this day"
+                className="inline-flex"
+              >
+                <VenetianMask className="h-3 w-3 text-dm-gold" />
+              </span>
+            )}
+          </div>
         )}
       </div>
 
@@ -214,36 +243,83 @@ export function DayCell({
         </button>
       )}
 
-      {day.inCurrentMonth && isViableWeekday && tooltipRows.length > 0 && cursor && (
-        <div
-          className="pointer-events-none fixed z-50 w-max max-w-[220px] rounded-md border border-hairline bg-surface px-3 py-2 text-left shadow-parchment"
-          style={{ left: cursor.x + 14, top: cursor.y + 14 }}
-        >
-          {tooltipRows.map((r) => (
-            <div
-              key={r.name}
-              className={cn(
-                "flex items-center gap-1.5 text-[11px] leading-snug",
-                voteColor(r.value),
-              )}
-            >
-              <span
+      {day.inCurrentMonth &&
+        cursor &&
+        (hasConflict || hasAlign || (isViableWeekday && tooltipRows.length > 0)) && (
+          <div
+            className="pointer-events-none fixed z-50 w-max max-w-[220px] rounded-md border border-hairline bg-surface px-3 py-2 text-left shadow-parchment"
+            style={{ left: cursor.x + 14, top: cursor.y + 14 }}
+          >
+            {hasConflict && (
+              <div className="mb-1">
+                <div className="flex items-center gap-1 text-[11px] font-bold text-wine">
+                  <Swords className="h-3 w-3" />
+                  Booked elsewhere
+                </div>
+                {conflictCampaigns!.map((c) => (
+                  <div key={c} className="pl-4 text-[11px] leading-snug text-ink-soft">
+                    {c}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {hasAlign && (
+              <div className={cn("mb-1", hasConflict && "border-t border-hairline pt-1")}>
+                <div className="text-[11px] font-bold text-ink">Your other campaigns</div>
+                {alignVotes!.map((av, i) => (
+                  <div
+                    key={i}
+                    className={cn(
+                      "flex items-center gap-1.5 text-[11px] leading-snug",
+                      av.value === "yes" ? "text-vote-yes" : "text-vote-maybe",
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        "h-1.5 w-1.5 shrink-0 rounded-full",
+                        av.value === "yes" ? "bg-vote-yes" : "bg-vote-maybe",
+                      )}
+                    />
+                    {av.campaignName} · {av.value}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {isViableWeekday && tooltipRows.length > 0 && (
+              <div
                 className={cn(
-                  "h-1.5 w-1.5 shrink-0 rounded-full",
-                  r.value === "yes"
-                    ? "bg-vote-yes"
-                    : r.value === "maybe"
-                      ? "bg-vote-maybe"
-                      : r.value === "no"
-                        ? "bg-vote-no"
-                        : "bg-ink-soft/40",
+                  (hasConflict || hasAlign) && "border-t border-hairline pt-1",
                 )}
-              />
-              {r.name}
-            </div>
-          ))}
-        </div>
-      )}
+              >
+                {tooltipRows.map((r) => (
+                  <div
+                    key={r.name}
+                    className={cn(
+                      "flex items-center gap-1.5 text-[11px] leading-snug",
+                      voteColor(r.value),
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        "h-1.5 w-1.5 shrink-0 rounded-full",
+                        r.value === "yes"
+                          ? "bg-vote-yes"
+                          : r.value === "maybe"
+                            ? "bg-vote-maybe"
+                            : r.value === "no"
+                              ? "bg-vote-no"
+                              : "bg-ink-soft/40",
+                      )}
+                    />
+                    {r.name}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
     </div>
   );
 }

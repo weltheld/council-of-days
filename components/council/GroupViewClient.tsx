@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AppHeader } from "@/components/council/AppHeader";
 import { CalendarPanel } from "@/components/council/CalendarPanel";
@@ -10,7 +11,7 @@ import { QuickFillBar } from "@/components/council/QuickFillBar";
 import { BannerParty } from "@/components/council/BannerParty";
 import { CharacterDialog } from "@/components/council/CharacterDialog";
 import type { CalendarDay } from "@/lib/calendar";
-import { buildMonthGrid } from "@/lib/calendar";
+import { buildMonthGrid, isoDate } from "@/lib/calendar";
 import type {
   BackgroundScene,
   Group,
@@ -38,6 +39,10 @@ type Props = {
   currentUser: User;
   /** ISO dates marked as game sessions. */
   sessionDates: string[];
+  /** Play-dates from the user's OTHER campaigns (date → which campaign). */
+  crossSessions: { date: string; campaignName: string }[];
+  /** The user's own yes/maybe votes in OTHER campaigns (for the align overlay). */
+  crossVotes: { date: string; value: VoteValue; campaignName: string }[];
 };
 
 export function GroupViewClient(props: Props) {
@@ -59,12 +64,86 @@ export function GroupViewClient(props: Props) {
     [props.sessionDates],
   );
 
+  // Cross-campaign overlays. Conflicts (other campaigns' play-dates) are
+  // always shown; the align overlay (my yes/maybe elsewhere) is toggled.
+  const [showAlign, setShowAlign] = useState(false);
+  const conflictByDate = useMemo(() => {
+    const m = new Map<string, string[]>();
+    for (const s of props.crossSessions) {
+      const arr = m.get(s.date) ?? [];
+      if (!arr.includes(s.campaignName)) arr.push(s.campaignName);
+      m.set(s.date, arr);
+    }
+    return m;
+  }, [props.crossSessions]);
+  const alignByDate = useMemo(() => {
+    const m = new Map<string, { value: VoteValue; campaignName: string }[]>();
+    for (const v of props.crossVotes) {
+      const arr = m.get(v.date) ?? [];
+      arr.push({ value: v.value, campaignName: v.campaignName });
+      m.set(v.date, arr);
+    }
+    return m;
+  }, [props.crossVotes]);
+  const alignCampaignCount = useMemo(
+    () => new Set(props.crossVotes.map((v) => v.campaignName)).size,
+    [props.crossVotes],
+  );
+
   // Keep local state in sync if the server re-renders with new props
   // (e.g. after router.refresh()).
   useEffect(() => setGroup(props.group), [props.group]);
   useEffect(() => setVotes(props.votes), [props.votes]);
 
   const supabase = getBrowserSupabase();
+
+  // Auto-decline days the user is already booked for elsewhere. Runs once,
+  // and only for future, votable days they haven't already voted on — so it
+  // never overwrites a deliberate choice and is fully reversible by clicking.
+  const autoNoApplied = useRef(false);
+  useEffect(() => {
+    if (autoNoApplied.current) return;
+    if (props.crossSessions.length === 0) return;
+    autoNoApplied.current = true;
+
+    const todayIso = isoDate(new Date());
+    const viable = new Set(props.group.viableWeekdays);
+    const myVoteDates = new Set(
+      props.votes
+        .filter((v) => v.userId === props.currentUser.id)
+        .map((v) => v.date),
+    );
+    const toBlock = Array.from(
+      new Set(props.crossSessions.map((s) => s.date)),
+    ).filter((d) => {
+      if (d < todayIso) return false;
+      if (myVoteDates.has(d)) return false;
+      const [y, mo, da] = d.split("-").map(Number);
+      return viable.has(new Date(y, mo - 1, da).getDay() as Weekday);
+    });
+    if (toBlock.length === 0) return;
+
+    setVotes((prev) => [
+      ...prev,
+      ...toBlock.map((date) => ({
+        groupId: props.group.id,
+        userId: props.currentUser.id,
+        date,
+        value: "no" as VoteValue,
+      })),
+    ]);
+    void supabase.from("votes").upsert(
+      toBlock.map((date) => ({
+        campaign_id: props.group.id,
+        user_id: props.currentUser.id,
+        date,
+        value: "no" as const,
+      })),
+      { onConflict: "campaign_id,user_id,date" },
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.crossSessions]);
+
   const isCreator = currentUserMatches(props.currentUser.id, group.creatorId);
   const firstName =
     props.currentUser.displayName?.split(" ")[0] ||
@@ -431,6 +510,13 @@ export function GroupViewClient(props: Props) {
                 yesCount={leadingYesCount}
                 memberCount={members.length}
               />
+              {alignCampaignCount > 0 && (
+                <AlignToggle
+                  active={showAlign}
+                  count={alignCampaignCount}
+                  onToggle={() => setShowAlign((v) => !v)}
+                />
+              )}
             </div>
           </aside>
 
@@ -451,6 +537,9 @@ export function GroupViewClient(props: Props) {
                 onOpenSettings={() => setSettingsOpen(true)}
                 sessionDates={sessions}
                 onToggleSession={isCreator ? handleToggleSession : undefined}
+                conflictByDate={conflictByDate}
+                alignByDate={alignByDate}
+                showAlign={showAlign}
                 belowHeader={
                   <QuickFillBar
                     viableWeekdays={group.viableWeekdays}
@@ -459,12 +548,19 @@ export function GroupViewClient(props: Props) {
                   />
                 }
               />
-              <div className="px-4 pb-4 sm:px-5">
+              <div className="flex flex-col gap-4 px-4 pb-4 sm:px-5">
                 <BestDaySummary
                   bestDayIso={bestDayIso}
                   yesCount={leadingYesCount}
                   memberCount={members.length}
                 />
+                {alignCampaignCount > 0 && (
+                  <AlignToggle
+                    active={showAlign}
+                    count={alignCampaignCount}
+                    onToggle={() => setShowAlign((v) => !v)}
+                  />
+                )}
               </div>
             </div>
             {/* Desktop calendar (no QuickFillBar inside) */}
@@ -482,6 +578,9 @@ export function GroupViewClient(props: Props) {
                 onOpenSettings={() => setSettingsOpen(true)}
                 sessionDates={sessions}
                 onToggleSession={isCreator ? handleToggleSession : undefined}
+                conflictByDate={conflictByDate}
+                alignByDate={alignByDate}
+                showAlign={showAlign}
               />
             </div>
           </div>
@@ -549,6 +648,48 @@ export function GroupViewClient(props: Props) {
 
 function currentUserMatches(myId: string, creatorId: string) {
   return myId === creatorId;
+}
+
+function AlignToggle({
+  active,
+  count,
+  onToggle,
+}: {
+  active: boolean;
+  count: number;
+  onToggle: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-pressed={active}
+      className={cn(
+        "flex w-full items-start gap-2 rounded-lg border px-3 py-2 text-left shadow-sm transition",
+        active
+          ? "border-dm-gold/70 bg-dm-gold/10 text-ink"
+          : "border-hairline bg-surface text-ink-soft hover:bg-parchment hover:text-ink",
+      )}
+    >
+      {active ? (
+        <Eye className="mt-0.5 h-4 w-4 shrink-0 text-dm-gold" />
+      ) : (
+        <EyeOff className="mt-0.5 h-4 w-4 shrink-0" />
+      )}
+      <span className="flex-1">
+        <span className="block font-body text-xs font-bold">
+          Align with other campaigns
+        </span>
+        <span className="block text-[10px] leading-snug text-ink-soft">
+          {active
+            ? "Showing your yes / maybe from elsewhere"
+            : `Overlay your votes from ${count} other ${
+                count === 1 ? "campaign" : "campaigns"
+              }`}
+        </span>
+      </span>
+    </button>
+  );
 }
 
 function RefreshOnFocus({ onFocus }: { onFocus: () => void }) {
