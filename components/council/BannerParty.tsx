@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { VenetianMask } from "lucide-react";
+import { Pencil, VenetianMask } from "lucide-react";
 import { Avatar } from "./Avatar";
 import { Crest } from "./Crest";
 import type { Member, User } from "@/lib/types";
@@ -19,9 +19,18 @@ type Props = {
   members: MemberWithUser[];
   /** Whether a banner image is present (affects ring color for contrast). */
   hasBanner: boolean;
+  /** The viewer's user id — their own avatar becomes an "edit my character" button. */
+  currentUserId?: string;
+  /** Open the per-campaign character editor for the current user. */
+  onEditSelf?: () => void;
 };
 
-export function BannerParty({ members, hasBanner }: Props) {
+export function BannerParty({
+  members,
+  hasBanner,
+  currentUserId,
+  onEditSelf,
+}: Props) {
   const [tooltip, setTooltip] = useState<{
     member: MemberWithUser;
     x: number;
@@ -34,11 +43,18 @@ export function BannerParty({ members, hasBanner }: Props) {
         {members.map((m, i) => {
           const label =
             m.user.characterName || m.user.displayName || m.user.email;
+          const isSelf = !!currentUserId && m.userId === currentUserId;
+          const editable = isSelf && !!onEditSelf;
           return (
             <div
               key={m.userId}
-              className="relative -mr-2.5 shrink-0 cursor-default transition-transform hover:z-50 hover:scale-110"
+              className={cn(
+                "group relative -mr-2.5 shrink-0 transition-transform hover:z-50 hover:scale-110",
+                editable ? "cursor-pointer" : "cursor-default",
+              )}
               style={{ zIndex: members.length - i }}
+              onClick={editable ? onEditSelf : undefined}
+              title={editable ? "Edit your character" : undefined}
               onMouseEnter={(e) => {
                 const rect = e.currentTarget.getBoundingClientRect();
                 const half = TOOLTIP_WIDTH / 2;
@@ -67,6 +83,11 @@ export function BannerParty({ members, hasBanner }: Props) {
                       : "ring-hairline",
                 )}
               />
+              {editable && (
+                <span className="pointer-events-none absolute inset-0 inline-flex items-center justify-center rounded-full bg-black/45 opacity-0 transition group-hover:opacity-100">
+                  <Pencil className="h-3.5 w-3.5 text-white" />
+                </span>
+              )}
             </div>
           );
         })}

@@ -37,6 +37,17 @@ export type CampaignMemberRow = {
   role: MemberRoleDb;
   is_dm: boolean;
   joined_at: string;
+  /** Per-campaign character name; null => fall back to the profile. */
+  character_name: string | null;
+  /** Per-campaign portrait URL; null => fall back to the profile. */
+  avatar_url: string | null;
+};
+
+export type UserImageRow = {
+  id: string;
+  user_id: string;
+  url: string;
+  created_at: string;
 };
 
 export type InvitationRow = {
@@ -127,6 +138,8 @@ export type Database = {
           role?: MemberRoleDb;
           is_dm?: boolean;
           joined_at?: string;
+          character_name?: string | null;
+          avatar_url?: string | null;
         };
         Update: {
           campaign_id?: string;
@@ -134,6 +147,24 @@ export type Database = {
           role?: MemberRoleDb;
           is_dm?: boolean;
           joined_at?: string;
+          character_name?: string | null;
+          avatar_url?: string | null;
+        };
+        Relationships: [];
+      };
+      user_images: {
+        Row: UserImageRow;
+        Insert: {
+          id?: string;
+          user_id: string;
+          url: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          url?: string;
+          created_at?: string;
         };
         Relationships: [];
       };

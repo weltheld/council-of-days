@@ -36,7 +36,9 @@ export default async function GroupPage({
     await Promise.all([
       supabase
         .from("campaign_members")
-        .select("campaign_id, user_id, role, is_dm, joined_at")
+        .select(
+          "campaign_id, user_id, role, is_dm, joined_at, character_name, avatar_url",
+        )
         .eq("campaign_id", campaign.id),
       supabase
         .from("votes")
@@ -64,12 +66,13 @@ export default async function GroupPage({
   for (const row of membersRows ?? []) {
     const p = profileById.get(row.user_id);
     if (!p) continue;
+    // Per-campaign character identity, falling back to the global profile.
     users.push({
       id: p.id,
       email: p.email,
       displayName: p.display_name,
-      characterName: p.character_name,
-      avatarUrl: p.avatar_url ?? undefined,
+      characterName: row.character_name ?? p.character_name,
+      avatarUrl: row.avatar_url ?? p.avatar_url ?? undefined,
     });
     members.push({
       groupId: row.campaign_id,
@@ -112,6 +115,10 @@ export default async function GroupPage({
     value: v.value,
   }));
 
+  // The current user's GLOBAL profile (drives the top-bar chip + its editor,
+  // and serves as the fallback option in the per-campaign character dialog).
+  const myProfile = profileById.get(user.id);
+
   return (
     <GroupViewClient
       group={group}
@@ -124,11 +131,9 @@ export default async function GroupPage({
       currentUser={{
         id: user.id,
         email: user.email ?? "",
-        displayName:
-          users.find((u) => u.id === user.id)?.displayName ?? "",
-        characterName:
-          users.find((u) => u.id === user.id)?.characterName ?? "",
-        avatarUrl: users.find((u) => u.id === user.id)?.avatarUrl,
+        displayName: myProfile?.display_name ?? "",
+        characterName: myProfile?.character_name ?? "",
+        avatarUrl: myProfile?.avatar_url ?? undefined,
       }}
     />
   );

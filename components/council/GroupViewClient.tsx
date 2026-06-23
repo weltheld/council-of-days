@@ -8,6 +8,7 @@ import { OwnerSettings } from "@/components/council/OwnerSettings";
 import { BestDaySummary } from "@/components/council/BestDaySummary";
 import { QuickFillBar } from "@/components/council/QuickFillBar";
 import { BannerParty } from "@/components/council/BannerParty";
+import { CharacterDialog } from "@/components/council/CharacterDialog";
 import type { CalendarDay } from "@/lib/calendar";
 import { buildMonthGrid } from "@/lib/calendar";
 import type {
@@ -45,6 +46,7 @@ export function GroupViewClient(props: Props) {
   const [group, setGroup] = useState(props.group);
   const [votes, setVotes] = useState<Vote[]>(props.votes);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [characterOpen, setCharacterOpen] = useState(false);
   const [bestDayIso, setBestDayIso] = useState<string | null>(null);
   const [currentMonthDays, setCurrentMonthDays] = useState<CalendarDay[]>(
     () => { const d = new Date(); return buildMonthGrid(d.getFullYear(), d.getMonth()); }
@@ -316,6 +318,31 @@ export function GroupViewClient(props: Props) {
     [group.id, sessions],
   );
 
+  // After saving the per-campaign character, reflect it immediately in the
+  // banner/roster, then resync from the server.
+  const handleCharacterSaved = useCallback(
+    (name: string, imageUrl: string | null) => {
+      setMembers((prev) =>
+        prev.map((m) =>
+          m.userId === props.currentUser.id
+            ? {
+                ...m,
+                user: {
+                  ...m.user,
+                  characterName: name,
+                  avatarUrl: imageUrl ?? undefined,
+                },
+              }
+            : m,
+        ),
+      );
+      router.refresh();
+    },
+    [props.currentUser.id, router],
+  );
+
+  const me = members.find((m) => m.userId === props.currentUser.id);
+
   // Sorted members: DMs first.
   const sortedMembers = [...members].sort((a, b) =>
     a.isDm === b.isDm ? 0 : a.isDm ? -1 : 1,
@@ -363,6 +390,8 @@ export function GroupViewClient(props: Props) {
               <BannerParty
                 members={sortedMembers}
                 hasBanner={!!group.bannerUrl}
+                currentUserId={props.currentUser.id}
+                onEditSelf={() => setCharacterOpen(true)}
               />
             </div>
 
@@ -496,6 +525,19 @@ export function GroupViewClient(props: Props) {
           />
         )}
       </div>
+
+      {characterOpen && (
+        <CharacterDialog
+          campaignId={group.id}
+          initialName={
+            me?.user.characterName || props.currentUser.characterName || ""
+          }
+          initialImageUrl={me?.user.avatarUrl ?? props.currentUser.avatarUrl}
+          profileImageUrl={props.currentUser.avatarUrl}
+          onClose={() => setCharacterOpen(false)}
+          onSaved={handleCharacterSaved}
+        />
+      )}
 
       {/* Hint: when the data model changes via server actions elsewhere
           (e.g. a new member joins), the parent server component re-runs
