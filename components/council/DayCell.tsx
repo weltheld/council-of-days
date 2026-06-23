@@ -24,7 +24,7 @@ type Props = {
   onToggleSession?: (iso: string) => void;
   /** Names of OTHER campaigns with a play-date on this day (the user is booked). */
   conflictCampaigns?: string[];
-  /** The user's yes/maybe votes in OTHER campaigns (only when the align overlay is on). */
+  /** The user's votes in OTHER campaigns (only when the align overlay is on). */
   alignVotes?: { value: VoteValue; campaignName: string }[];
 };
 
@@ -158,7 +158,11 @@ export function DayCell({
                     key={i}
                     className={cn(
                       "h-1.5 w-1.5 rounded-full ring-1 ring-white/70",
-                      av.value === "yes" ? "bg-vote-yes" : "bg-vote-maybe",
+                      av.value === "yes"
+                        ? "bg-vote-yes"
+                        : av.value === "maybe"
+                          ? "bg-vote-maybe"
+                          : "bg-vote-no",
                     )}
                   />
                 ))}
@@ -272,13 +276,17 @@ export function DayCell({
                     key={i}
                     className={cn(
                       "flex items-center gap-1.5 text-[11px] leading-snug",
-                      av.value === "yes" ? "text-vote-yes" : "text-vote-maybe",
+                      voteColor(av.value),
                     )}
                   >
                     <span
                       className={cn(
                         "h-1.5 w-1.5 shrink-0 rounded-full",
-                        av.value === "yes" ? "bg-vote-yes" : "bg-vote-maybe",
+                        av.value === "yes"
+                          ? "bg-vote-yes"
+                          : av.value === "maybe"
+                            ? "bg-vote-maybe"
+                            : "bg-vote-no",
                       )}
                     />
                     {av.campaignName} · {av.value}

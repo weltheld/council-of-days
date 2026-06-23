@@ -38,7 +38,7 @@ type Props = {
   onToggleSession?: (iso: string) => void;
   /** date → names of OTHER campaigns with a play-date that day. */
   conflictByDate?: Map<string, string[]>;
-  /** date → the user's yes/maybe votes in OTHER campaigns. */
+  /** date → the user's votes in OTHER campaigns. */
   alignByDate?: Map<string, { value: VoteValue; campaignName: string }[]>;
   /** Whether the align overlay is active. */
   showAlign?: boolean;

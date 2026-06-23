@@ -119,7 +119,7 @@ export default async function GroupPage({
   // ---- Cross-campaign awareness (for THIS user only) -------------------
   // The user's OTHER campaigns let us surface, on this calendar, the days
   // they're already booked (play-dates elsewhere) and — behind a toggle —
-  // their own yes/maybe votes elsewhere, so they can align schedules.
+  // their own votes elsewhere, so they can align schedules.
   // All of these reads are permitted by the existing member-scoped RLS.
   const { data: myMembershipRows } = await supabase
     .from("campaign_members")
@@ -143,8 +143,7 @@ export default async function GroupPage({
           .from("votes")
           .select("campaign_id, date, value")
           .eq("user_id", user.id)
-          .in("campaign_id", otherCampaignIds)
-          .in("value", ["yes", "maybe"]),
+          .in("campaign_id", otherCampaignIds),
       ]);
     const nameById = new Map(
       (otherCamps ?? []).map((c) => [c.id, c.name] as const),

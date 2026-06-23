@@ -41,7 +41,7 @@ type Props = {
   sessionDates: string[];
   /** Play-dates from the user's OTHER campaigns (date → which campaign). */
   crossSessions: { date: string; campaignName: string }[];
-  /** The user's own yes/maybe votes in OTHER campaigns (for the align overlay). */
+  /** The user's own votes in OTHER campaigns (for the align overlay). */
   crossVotes: { date: string; value: VoteValue; campaignName: string }[];
 };
 
@@ -682,7 +682,7 @@ function AlignToggle({
         </span>
         <span className="block text-[10px] leading-snug text-ink-soft">
           {active
-            ? "Showing your yes / maybe from elsewhere"
+            ? "Showing your votes from elsewhere"
             : `Overlay your votes from ${count} other ${
                 count === 1 ? "campaign" : "campaigns"
               }`}
