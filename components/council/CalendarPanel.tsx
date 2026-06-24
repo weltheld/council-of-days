@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, Settings2 } from "lucide-react";
 import {
   buildMonthGrid,
@@ -114,6 +114,24 @@ export function CalendarPanel({
     onMonthChange?.(m.year, m.monthIndex);
   }
 
+  // Horizontal swipe to switch months (mobile). We only act on a clearly
+  // horizontal gesture so vertical scrolling is never hijacked.
+  const touchStart = useRef<{ x: number; y: number } | null>(null);
+  function onTouchStart(e: React.TouchEvent) {
+    const t = e.touches[0];
+    touchStart.current = { x: t.clientX, y: t.clientY };
+  }
+  function onTouchEnd(e: React.TouchEvent) {
+    const start = touchStart.current;
+    touchStart.current = null;
+    if (!start) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - start.x;
+    const dy = t.clientY - start.y;
+    if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+    go(dx < 0 ? 1 : -1); // swipe left → next, swipe right → previous
+  }
+
   return (
     <section className="flex h-full flex-col gap-3 p-4 sm:p-5">
       <div className="flex flex-wrap items-center gap-x-2 gap-y-2 sm:gap-x-4">
@@ -155,7 +173,11 @@ export function CalendarPanel({
         ))}
       </div>
 
-      <div className="grid flex-1 grid-cols-7 auto-rows-fr gap-1">
+      <div
+        className="grid flex-1 grid-cols-7 auto-rows-fr gap-1 touch-pan-y select-none"
+        onTouchStart={onTouchStart}
+        onTouchEnd={onTouchEnd}
+      >
         {days.map((d) => (
           <DayCell
             key={d.iso}
