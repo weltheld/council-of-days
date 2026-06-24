@@ -113,6 +113,20 @@ html, body {
   100% { background-position: 0 50%; }
 }
 
+/* Month switch: slide in with a slight overshoot bounce, direction-aware. */
+@keyframes month-in-next {
+  0% { opacity: 0; transform: translateX(24px); }
+  60% { opacity: 1; transform: translateX(-5px); }
+  100% { transform: translateX(0); }
+}
+@keyframes month-in-prev {
+  0% { opacity: 0; transform: translateX(-24px); }
+  60% { opacity: 1; transform: translateX(5px); }
+  100% { transform: translateX(0); }
+}
+.animate-month-next { animation: month-in-next 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.animate-month-prev { animation: month-in-prev 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+
 /* Letter-pressed small caps style used for labels like "THE PARTY ·" */
 .small-caps {
   font-family: var(--font-display), serif;

@@ -11,6 +11,7 @@ import {
 } from "@/lib/calendar";
 import type { CalendarDay } from "@/lib/calendar";
 import type { Vote, VoteValue, Weekday } from "@/lib/types";
+import { cn } from "@/lib/utils";
 import { DayCell } from "./DayCell";
 
 const WEEKDAYS = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
@@ -108,9 +109,17 @@ export function CalendarPanel({
     queueMicrotask(() => onDaysChange(days));
   }
 
+  // Direction of the last month change, so the grid can animate in from the
+  // correct side. Bumped on every change to retrigger the CSS animation.
+  const [transition, setTransition] = useState<{ dir: -1 | 1; n: number }>({
+    dir: 1,
+    n: 0,
+  });
+
   function go(delta: -1 | 1) {
     const m = delta === -1 ? prevMonth(year, monthIndex) : nextMonth(year, monthIndex);
     setMonth(m);
+    setTransition((t) => ({ dir: delta, n: t.n + 1 }));
     onMonthChange?.(m.year, m.monthIndex);
   }
 
@@ -174,7 +183,12 @@ export function CalendarPanel({
       </div>
 
       <div
-        className="grid flex-1 grid-cols-7 auto-rows-fr gap-1 touch-pan-y select-none"
+        key={transition.n}
+        className={cn(
+          "grid flex-1 grid-cols-7 auto-rows-fr gap-1 touch-pan-y select-none",
+          transition.n > 0 &&
+            (transition.dir === 1 ? "animate-month-next" : "animate-month-prev"),
+        )}
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
       >
