@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { UserPlus, VenetianMask } from "lucide-react";
 import {
-  getServerSupabase,
+  getAuthedUser,
   getServiceRoleSupabase,
 } from "@/lib/supabase/server";
 import { AppHeader } from "@/components/council/AppHeader";
@@ -11,10 +11,7 @@ import { PendingInvites } from "@/components/council/PendingInvites";
 import { cn } from "@/lib/utils";
 
 export default async function HomePage() {
-  const supabase = await getServerSupabase();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await getAuthedUser();
   if (!user) redirect("/login");
 
   const { data: profile } = await supabase

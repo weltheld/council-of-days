@@ -40,6 +40,23 @@ export async function getServerSupabase() {
 }
 
 /**
+ * Authenticated user + a server client, for pages/actions on protected
+ * routes. The middleware (`updateSession`) already calls `auth.getUser()`
+ * on every protected path, which validates the JWT against the auth server
+ * and refreshes the cookie. So here we read the user from the session
+ * **locally** (no extra network round-trip) — `getUser()` would re-validate
+ * over the network on every navigation, which is a big chunk of the latency.
+ * RLS still enforces real authorisation at the database.
+ */
+export async function getAuthedUser() {
+  const supabase = await getServerSupabase();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  return { supabase, user: session?.user ?? null };
+}
+
+/**
  * Service-role client. Bypasses RLS. Only call from server code that
  * has already authorised the action (never from Client Components).
  */

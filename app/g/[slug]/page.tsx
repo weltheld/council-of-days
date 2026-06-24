@@ -1,5 +1,5 @@
 import { redirect, notFound } from "next/navigation";
-import { getServerSupabase } from "@/lib/supabase/server";
+import { getAuthedUser } from "@/lib/supabase/server";
 import { GroupViewClient } from "@/components/council/GroupViewClient";
 import type {
   BackgroundScene,
@@ -17,10 +17,7 @@ export default async function GroupPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const supabase = await getServerSupabase();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await getAuthedUser();
   if (!user) redirect(`/login?next=/g/${slug}`);
 
   // Load the campaign. RLS blocks non-members, so a missing row means
@@ -32,24 +29,31 @@ export default async function GroupPage({
     .maybeSingle();
   if (!campaign) notFound();
 
-  // Load members + votes + sessions in parallel; then fetch profiles in one batch.
-  const [{ data: membersRows }, { data: votesRows }, { data: sessionRows }] =
-    await Promise.all([
-      supabase
-        .from("campaign_members")
-        .select(
-          "campaign_id, user_id, role, is_dm, joined_at, character_name, avatar_url",
-        )
-        .eq("campaign_id", campaign.id),
-      supabase
-        .from("votes")
-        .select("*")
-        .eq("campaign_id", campaign.id),
-      supabase
-        .from("campaign_sessions")
-        .select("date")
-        .eq("campaign_id", campaign.id),
-    ]);
+  // Wave 1: everything that only needs campaign.id / user.id, in parallel.
+  // `myMembershipRows` (for cross-campaign awareness) used to run later in its
+  // own round-trip; folding it in here removes a serial hop.
+  const [
+    { data: membersRows },
+    { data: votesRows },
+    { data: sessionRows },
+    { data: myMembershipRows },
+  ] = await Promise.all([
+    supabase
+      .from("campaign_members")
+      .select(
+        "campaign_id, user_id, role, is_dm, joined_at, character_name, avatar_url",
+      )
+      .eq("campaign_id", campaign.id),
+    supabase.from("votes").select("*").eq("campaign_id", campaign.id),
+    supabase
+      .from("campaign_sessions")
+      .select("date")
+      .eq("campaign_id", campaign.id),
+    supabase
+      .from("campaign_members")
+      .select("campaign_id")
+      .eq("user_id", user.id),
+  ]);
 
   const memberUserIds = (membersRows ?? []).map((m) => m.user_id);
   const { data: profileRows } = memberUserIds.length
@@ -121,10 +125,7 @@ export default async function GroupPage({
   // they're already booked (play-dates elsewhere) and — behind a toggle —
   // their own votes elsewhere, so they can align schedules.
   // All of these reads are permitted by the existing member-scoped RLS.
-  const { data: myMembershipRows } = await supabase
-    .from("campaign_members")
-    .select("campaign_id")
-    .eq("user_id", user.id);
+  // `myMembershipRows` was already fetched in wave 1 above.
   const otherCampaignIds = (myMembershipRows ?? [])
     .map((r) => r.campaign_id)
     .filter((id) => id !== campaign.id);
