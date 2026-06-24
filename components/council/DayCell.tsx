@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Check, Minus, Plus, Swords, VenetianMask, X } from "lucide-react";
 import type { CalendarDay } from "@/lib/calendar";
 import type { Vote, VoteValue } from "@/lib/types";
@@ -85,7 +85,63 @@ export function DayCell({
   const interactive =
     day.inCurrentMonth && isViableWeekday && !day.isPast && !!myUserId;
 
-  const [cursor, setCursor] = useState<{ x: number; y: number } | null>(null);
+  // `big` marks a long-press (touch) tooltip: larger, and anchored above the
+  // finger so it isn't hidden by the hand.
+  const [cursor, setCursor] = useState<
+    { x: number; y: number; big?: boolean } | null
+  >(null);
+
+  // Long-press handling for touch. A press that lasts ~450ms without moving
+  // reveals the tooltip and suppresses the vote tap that would otherwise fire
+  // on release.
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const longPressed = useRef(false);
+  const touchOrigin = useRef<{ x: number; y: number } | null>(null);
+
+  function clearLongPress() {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+  }
+
+  function handleTouchStart(e: React.TouchEvent) {
+    const t = e.touches[0];
+    touchOrigin.current = { x: t.clientX, y: t.clientY };
+    longPressed.current = false;
+    clearLongPress();
+    longPressTimer.current = setTimeout(() => {
+      longPressed.current = true;
+      const o = touchOrigin.current;
+      if (o) setCursor({ x: o.x, y: o.y, big: true });
+    }, 450);
+  }
+
+  function handleTouchMove(e: React.TouchEvent) {
+    const o = touchOrigin.current;
+    if (!o) return;
+    const t = e.touches[0];
+    // A real drag (e.g. month swipe / scroll) cancels the long-press.
+    if (Math.abs(t.clientX - o.x) > 10 || Math.abs(t.clientY - o.y) > 10) {
+      clearLongPress();
+      if (longPressed.current) setCursor(null);
+      longPressed.current = false;
+      touchOrigin.current = null;
+    }
+  }
+
+  function handleTouchEnd() {
+    clearLongPress();
+    touchOrigin.current = null;
+    setCursor(null);
+  }
+
+  // Long-press (touch) tooltips are bigger and sit above the finger; mouse
+  // tooltips keep their original compact size next to the cursor.
+  const big = !!cursor?.big;
+  const tipText = big ? "text-[14px]" : "text-[11px]";
+  const tipDot = big ? "h-2 w-2" : "h-1.5 w-1.5";
+  const tipIcon = big ? "h-4 w-4" : "h-3 w-3";
 
   // Tinted background derived from user's own vote. Solid (opaque) beige
   // blends so the tile keeps its parchment color and just gains a subtle
@@ -107,10 +163,21 @@ export function DayCell({
       className="group relative h-full"
       onMouseMove={(e) => setCursor({ x: e.clientX, y: e.clientY })}
       onMouseLeave={() => setCursor(null)}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      onTouchCancel={handleTouchEnd}
     >
     <button
       type="button"
-      onClick={() => interactive && onCycle(day.iso)}
+      onClick={() => {
+        // A long-press already showed the tooltip — don't also cycle the vote.
+        if (longPressed.current) {
+          longPressed.current = false;
+          return;
+        }
+        interactive && onCycle(day.iso);
+      }}
       disabled={!interactive}
       className={cn(
         "relative flex h-full min-h-[78px] w-full flex-col rounded-md border p-1.5 text-left transition",
@@ -251,17 +318,28 @@ export function DayCell({
         cursor &&
         (hasConflict || hasAlign || (isViableWeekday && tooltipRows.length > 0)) && (
           <div
-            className="pointer-events-none fixed z-50 w-max max-w-[220px] rounded-md border border-hairline bg-surface px-3 py-2 text-left shadow-parchment"
-            style={{ left: cursor.x + 14, top: cursor.y + 14 }}
+            className={cn(
+              "pointer-events-none fixed z-50 w-max rounded-md border border-hairline bg-surface text-left shadow-parchment",
+              big ? "max-w-[280px] px-4 py-3" : "max-w-[220px] px-3 py-2",
+            )}
+            style={
+              big
+                ? {
+                    left: cursor.x,
+                    top: cursor.y - 28,
+                    transform: "translate(-50%, -100%)",
+                  }
+                : { left: cursor.x + 14, top: cursor.y + 14 }
+            }
           >
             {hasConflict && (
               <div className="mb-1">
-                <div className="flex items-center gap-1 text-[11px] font-bold text-wine">
-                  <Swords className="h-3 w-3" />
+                <div className={cn("flex items-center gap-1 font-bold text-wine", tipText)}>
+                  <Swords className={tipIcon} />
                   Booked elsewhere
                 </div>
                 {conflictCampaigns!.map((c) => (
-                  <div key={c} className="pl-4 text-[11px] leading-snug text-ink-soft">
+                  <div key={c} className={cn("pl-4 leading-snug text-ink-soft", tipText)}>
                     {c}
                   </div>
                 ))}
@@ -270,18 +348,20 @@ export function DayCell({
 
             {hasAlign && (
               <div className={cn("mb-1", hasConflict && "border-t border-hairline pt-1")}>
-                <div className="text-[11px] font-bold text-ink">Your other campaigns</div>
+                <div className={cn("font-bold text-ink", tipText)}>Your other campaigns</div>
                 {alignVotes!.map((av, i) => (
                   <div
                     key={i}
                     className={cn(
-                      "flex items-center gap-1.5 text-[11px] leading-snug",
+                      "flex items-center gap-1.5 leading-snug",
+                      tipText,
                       voteColor(av.value),
                     )}
                   >
                     <span
                       className={cn(
-                        "h-1.5 w-1.5 shrink-0 rounded-full",
+                        tipDot,
+                        "shrink-0 rounded-full",
                         av.value === "yes"
                           ? "bg-vote-yes"
                           : av.value === "maybe"
@@ -305,13 +385,15 @@ export function DayCell({
                   <div
                     key={r.name}
                     className={cn(
-                      "flex items-center gap-1.5 text-[11px] leading-snug",
+                      "flex items-center gap-1.5 leading-snug",
+                      tipText,
                       voteColor(r.value),
                     )}
                   >
                     <span
                       className={cn(
-                        "h-1.5 w-1.5 shrink-0 rounded-full",
+                        tipDot,
+                        "shrink-0 rounded-full",
                         r.value === "yes"
                           ? "bg-vote-yes"
                           : r.value === "maybe"
