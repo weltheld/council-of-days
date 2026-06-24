@@ -628,6 +628,7 @@ export function GroupViewClient(props: Props) {
       {characterOpen && (
         <CharacterDialog
           campaignId={group.id}
+          campaignName={group.name}
           initialName={
             me?.user.characterName || props.currentUser.characterName || ""
           }

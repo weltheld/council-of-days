@@ -21,6 +21,7 @@ type GalleryImage = { id: string | null; url: string };
 
 type Props = {
   campaignId: string;
+  campaignName: string;
   initialName: string;
   initialImageUrl?: string;
   profileImageUrl?: string;
@@ -30,6 +31,7 @@ type Props = {
 
 export function CharacterDialog({
   campaignId,
+  campaignName,
   initialName,
   initialImageUrl,
   profileImageUrl,
@@ -171,11 +173,9 @@ export function CharacterDialog({
         <div className="mb-4 flex items-start justify-between gap-3">
           <div>
             <h2 className="font-display text-xl font-bold text-ink">
-              Your character here
+              Your Character
             </h2>
-            <p className="text-xs text-ink-soft">
-              Choose a name and portrait for this campaign.
-            </p>
+            <p className="truncate text-xs text-ink-soft">{campaignName}</p>
           </div>
           <button
             onClick={onClose}
@@ -273,7 +273,7 @@ export function CharacterDialog({
                         onClick={() => removeImage(img)}
                         aria-label="Remove from your portraits"
                         title="Remove from your portraits"
-                        className="absolute left-1 top-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-black/55 text-white opacity-0 transition hover:bg-vote-no group-hover:opacity-100"
+                        className="absolute left-1 top-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-black/55 text-white opacity-80 transition hover:bg-vote-no hover:opacity-100"
                       >
                         <X className="h-3 w-3" strokeWidth={2.5} />
                       </button>
