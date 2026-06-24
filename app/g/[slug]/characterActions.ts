@@ -106,6 +106,50 @@ export async function deleteUserImageAction(
   return { ok: true };
 }
 
+/**
+ * Permanently delete one of the user's portraits *everywhere*: the storage
+ * object (only within their own avatars folder), any image-library rows, and
+ * every reference to it as a profile or per-campaign avatar. Anything that
+ * pointed at it falls back to the crest. Scoped to the caller's own data.
+ */
+export async function deletePortraitEverywhereAction(
+  url: string,
+): Promise<SimpleResult> {
+  const supabase = await getServerSupabase();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "You must be signed in." };
+
+  const admin = getServiceRoleSupabase();
+
+  // Remove the underlying file, but only if it lives in this user's folder
+  // ({user_id}/…) — never touch anyone else's storage.
+  const marker = "/storage/v1/object/public/avatars/";
+  const idx = url.indexOf(marker);
+  if (idx !== -1) {
+    const path = decodeURIComponent(url.slice(idx + marker.length));
+    if (path.startsWith(`${user.id}/`)) {
+      await admin.storage.from("avatars").remove([path]);
+    }
+  }
+
+  // Drop any library rows, and clear the URL wherever it's used as an avatar.
+  await admin.from("user_images").delete().eq("user_id", user.id).eq("url", url);
+  await admin
+    .from("profiles")
+    .update({ avatar_url: null })
+    .eq("id", user.id)
+    .eq("avatar_url", url);
+  await admin
+    .from("campaign_members")
+    .update({ avatar_url: null })
+    .eq("user_id", user.id)
+    .eq("avatar_url", url);
+
+  return { ok: true };
+}
+
 export type SetCharacterInput = {
   characterName: string;
   avatarUrl: string | null;

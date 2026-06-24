@@ -10,7 +10,7 @@ import { TextField } from "./TextField";
 import { WaxButton } from "./WaxButton";
 import { cn } from "@/lib/utils";
 import {
-  deleteUserImageAction,
+  deletePortraitEverywhereAction,
   listMyImagesAction,
   setCampaignCharacterAction,
   uploadCharacterImageAction,
@@ -62,7 +62,11 @@ export function CharacterDialog({
         : [];
       const seeds: GalleryImage[] = [];
       for (const url of [initialImageUrl, profileImageUrl]) {
-        if (url && !lib.some((i) => i.url === url)) {
+        if (
+          url &&
+          !lib.some((i) => i.url === url) &&
+          !seeds.some((s) => s.url === url)
+        ) {
           seeds.push({ id: null, url });
         }
       }
@@ -122,10 +126,16 @@ export function CharacterDialog({
   }
 
   async function removeImage(img: GalleryImage) {
-    if (!img.id) return; // seeded entries aren't owned library rows
+    if (
+      !window.confirm(
+        "Delete this portrait everywhere? It will be removed from your profile and any campaigns using it.",
+      )
+    ) {
+      return;
+    }
     setImages((prev) => prev.filter((i) => i.url !== img.url));
     if (selected === img.url) setSelected(null);
-    await deleteUserImageAction(img.id);
+    await deletePortraitEverywhereAction(img.url);
   }
 
   async function save() {
@@ -267,17 +277,15 @@ export function CharacterDialog({
                         <Check className="h-3 w-3" strokeWidth={3} />
                       </span>
                     )}
-                    {img.id && (
-                      <button
-                        type="button"
-                        onClick={() => removeImage(img)}
-                        aria-label="Remove from your portraits"
-                        title="Remove from your portraits"
-                        className="absolute left-1 top-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-black/55 text-white opacity-80 transition hover:bg-vote-no hover:opacity-100"
-                      >
-                        <X className="h-3 w-3" strokeWidth={2.5} />
-                      </button>
-                    )}
+                    <button
+                      type="button"
+                      onClick={() => removeImage(img)}
+                      aria-label="Delete this portrait everywhere"
+                      title="Delete this portrait everywhere"
+                      className="absolute left-1 top-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-black/55 text-white opacity-80 transition hover:bg-vote-no hover:opacity-100"
+                    >
+                      <X className="h-3 w-3" strokeWidth={2.5} />
+                    </button>
                   </div>
                 );
               })}
