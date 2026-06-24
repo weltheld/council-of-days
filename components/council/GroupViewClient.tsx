@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Settings2 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AppHeader } from "@/components/council/AppHeader";
 import { CalendarPanel } from "@/components/council/CalendarPanel";
@@ -462,6 +462,25 @@ export function GroupViewClient(props: Props) {
                 {/* bottom scrim for title */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent" />
               </>
+            )}
+
+            {/* Poll settings — top-right, mobile only (desktop has it in the
+                calendar header). */}
+            {isCreator && (
+              <button
+                type="button"
+                onClick={() => setSettingsOpen(true)}
+                aria-label="Poll settings"
+                title="Poll settings"
+                className={cn(
+                  "absolute right-3 top-3 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full lg:hidden",
+                  group.bannerUrl
+                    ? "bg-black/40 text-surface backdrop-blur-sm hover:bg-black/55"
+                    : "border border-hairline bg-surface text-ink-soft shadow-sm hover:bg-parchment hover:text-ink",
+                )}
+              >
+                <Settings2 className="h-4 w-4" />
+              </button>
             )}
 
             {/* Party avatars — top-left */}

@@ -143,30 +143,32 @@ export function CalendarPanel({
 
   return (
     <section className="flex h-full flex-col gap-3 p-4 sm:p-5">
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-2 sm:gap-x-4">
+      <div className="flex items-center gap-2 lg:gap-4">
         <button
           aria-label="Previous month"
           onClick={() => go(-1)}
-          className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-hairline bg-surface shadow-sm hover:bg-parchment"
+          className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-hairline bg-surface shadow-sm hover:bg-parchment lg:h-9 lg:w-9"
         >
-          <ChevronLeft className="h-4 w-4" />
+          <ChevronLeft className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
         </button>
-        <h2 className="font-display text-xl sm:text-2xl text-ink">
+        <h2 className="flex-1 text-center font-display text-xl text-ink lg:flex-none lg:text-left lg:text-2xl">
           {monthLabel(year, monthIndex)}
         </h2>
         <button
           aria-label="Next month"
           onClick={() => go(1)}
-          className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-hairline bg-surface shadow-sm hover:bg-parchment"
+          className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-hairline bg-surface shadow-sm hover:bg-parchment lg:h-9 lg:w-9"
         >
-          <ChevronRight className="h-4 w-4" />
+          <ChevronRight className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
         </button>
-        <div className="flex-1" />
+        {/* Spacer + Poll settings only from lg up; on mobile the banner
+            carries the settings icon. */}
+        <div className="hidden flex-1 lg:block" />
         {isCreator && onOpenSettings && (
           <button
             type="button"
             onClick={onOpenSettings}
-            className="inline-flex items-center gap-1.5 rounded-md border border-hairline bg-surface px-3 py-1.5 text-xs font-body font-bold text-ink-soft shadow-sm hover:bg-parchment hover:text-ink"
+            className="hidden items-center gap-1.5 rounded-md border border-hairline bg-surface px-3 py-1.5 text-xs font-body font-bold text-ink-soft shadow-sm hover:bg-parchment hover:text-ink lg:inline-flex"
           >
             <Settings2 className="h-3.5 w-3.5" />
             Poll settings
