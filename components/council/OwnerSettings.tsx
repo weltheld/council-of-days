@@ -234,20 +234,26 @@ export function OwnerSettings({
               type="button"
               onClick={() => fileInput.current?.click()}
               disabled={uploading}
-              className="inline-flex items-center gap-1.5 rounded-md border border-hairline bg-surface/60 px-3 py-1.5 text-xs font-display tracking-wider uppercase text-ink hover:bg-parchment disabled:opacity-50"
+              aria-label={
+                uploading ? "Uploading…" : bannerUrl ? "Replace banner" : "Upload banner"
+              }
+              title={
+                uploading ? "Uploading…" : bannerUrl ? "Replace banner" : "Upload banner"
+              }
+              className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-hairline bg-surface/60 text-ink hover:bg-parchment disabled:opacity-50"
             >
-              <ImagePlus className="h-3.5 w-3.5" />
-              {uploading ? "Uploading..." : bannerUrl ? "Replace" : "Upload"}
+              <ImagePlus className={cn("h-4 w-4", uploading && "animate-pulse")} />
             </button>
             {bannerUrl && (
               <button
                 type="button"
                 onClick={onAdjustCrop}
                 disabled={uploading}
-                className="inline-flex items-center gap-1.5 rounded-md border border-hairline bg-surface/60 px-3 py-1.5 text-xs font-display tracking-wider uppercase text-ink hover:bg-parchment disabled:opacity-50"
+                aria-label="Adjust crop"
+                title="Adjust crop"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-hairline bg-surface/60 text-ink hover:bg-parchment disabled:opacity-50"
               >
-                <Crop className="h-3.5 w-3.5" />
-                Adjust crop
+                <Crop className="h-4 w-4" />
               </button>
             )}
             {bannerUrl && (
@@ -255,10 +261,11 @@ export function OwnerSettings({
                 type="button"
                 onClick={onRemoveBanner}
                 disabled={uploading}
-                className="inline-flex items-center gap-1.5 rounded-md border border-hairline bg-surface/60 px-3 py-1.5 text-xs font-display tracking-wider uppercase text-vote-no hover:bg-parchment disabled:opacity-50"
+                aria-label="Remove banner"
+                title="Remove banner"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-hairline bg-surface/60 text-vote-no hover:bg-parchment disabled:opacity-50"
               >
-                <Trash2 className="h-3.5 w-3.5" />
-                Remove
+                <Trash2 className="h-4 w-4" />
               </button>
             )}
           </div>
