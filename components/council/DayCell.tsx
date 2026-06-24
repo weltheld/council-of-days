@@ -97,6 +97,9 @@ export function DayCell({
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const longPressed = useRef(false);
   const touchOrigin = useRef<{ x: number; y: number } | null>(null);
+  // True while a touch interaction is in progress, so the synthetic mouse
+  // events browsers emit for taps don't flash the small (mouse) tooltip.
+  const touchActive = useRef(false);
 
   function clearLongPress() {
     if (longPressTimer.current) {
@@ -107,6 +110,7 @@ export function DayCell({
 
   function handleTouchStart(e: React.TouchEvent) {
     const t = e.touches[0];
+    touchActive.current = true;
     touchOrigin.current = { x: t.clientX, y: t.clientY };
     longPressed.current = false;
     clearLongPress();
@@ -134,6 +138,11 @@ export function DayCell({
     clearLongPress();
     touchOrigin.current = null;
     setCursor(null);
+    // Keep ignoring mouse events briefly — browsers fire synthetic
+    // mousemove/click ~300ms after touchend.
+    setTimeout(() => {
+      touchActive.current = false;
+    }, 500);
   }
 
   // Long-press (touch) tooltips are bigger and sit above the finger; mouse
@@ -161,7 +170,10 @@ export function DayCell({
   return (
     <div
       className="group relative h-full"
-      onMouseMove={(e) => setCursor({ x: e.clientX, y: e.clientY })}
+      onMouseMove={(e) => {
+        if (touchActive.current) return;
+        setCursor({ x: e.clientX, y: e.clientY });
+      }}
       onMouseLeave={() => setCursor(null)}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
