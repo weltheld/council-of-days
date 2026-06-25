@@ -43,6 +43,8 @@ type Props = {
   alignByDate?: Map<string, { value: VoteValue; campaignName: string }[]>;
   /** Whether the align overlay is active. */
   showAlign?: boolean;
+  /** When false, hide the group vote tallies (show only the user's own tint). */
+  showTallies?: boolean;
 };
 
 export function CalendarPanel({
@@ -64,6 +66,7 @@ export function CalendarPanel({
   conflictByDate,
   alignByDate,
   showAlign,
+  showTallies = true,
 }: Props) {
   const start = initialMonth ?? defaultMonth();
   const [{ year, monthIndex }, setMonth] = useState(start);
@@ -209,6 +212,7 @@ export function CalendarPanel({
             onToggleSession={onToggleSession}
             conflictCampaigns={conflictByDate?.get(d.iso)}
             alignVotes={showAlign ? alignByDate?.get(d.iso) : undefined}
+            showTallies={showTallies}
             onCycle={(iso) => {
               const current = (monthVotes[iso] ?? []).find(
                 (v) => v.userId === myUserId,

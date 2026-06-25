@@ -26,6 +26,8 @@ type Props = {
   conflictCampaigns?: string[];
   /** The user's votes in OTHER campaigns (only when the align overlay is on). */
   alignVotes?: { value: VoteValue; campaignName: string }[];
+  /** When false, hide the group tallies (badges + per-member tooltip rows). */
+  showTallies?: boolean;
 };
 
 export function nextVoteValue(current: VoteValue | undefined): VoteValue | null {
@@ -49,6 +51,7 @@ export function DayCell({
   onToggleSession,
   conflictCampaigns,
   alignVotes,
+  showTallies = true,
 }: Props) {
   const hasConflict = !!conflictCampaigns?.length;
   const hasAlign = !!alignVotes?.length;
@@ -264,31 +267,33 @@ export function DayCell({
         )}
       </div>
 
-      <div
-        className={cn(
-          "mt-auto flex flex-wrap gap-1 pt-1.5",
-          isSession && "pr-7",
-        )}
-      >
-        {yesCount > 0 && (
-          <span className="inline-flex items-center gap-0.5 rounded px-1 py-0.5 font-display text-[10px] font-bold leading-none" style={{background:"#c8d8c0",color:"#1e3a28"}}>
-            <Check className="h-2.5 w-2.5" strokeWidth={3} />
-            {yesCount}
-          </span>
-        )}
-        {maybeCount > 0 && (
-          <span className="inline-flex items-center gap-0.5 rounded px-1 py-0.5 font-display text-[10px] font-bold leading-none" style={{background:"#e8d8a8",color:"#5a4010"}}>
-            <Minus className="h-2.5 w-2.5" strokeWidth={3} />
-            {maybeCount}
-          </span>
-        )}
-        {noCount > 0 && (
-          <span className="inline-flex items-center gap-0.5 rounded px-1 py-0.5 font-display text-[10px] font-bold leading-none" style={{background:"#e8c0c0",color:"#5a1820"}}>
-            <X className="h-2.5 w-2.5" strokeWidth={3} />
-            {noCount}
-          </span>
-        )}
-      </div>
+      {showTallies && (
+        <div
+          className={cn(
+            "mt-auto flex flex-wrap gap-1 pt-1.5",
+            isSession && "pr-7",
+          )}
+        >
+          {yesCount > 0 && (
+            <span className="inline-flex items-center gap-0.5 rounded px-1 py-0.5 font-display text-[10px] font-bold leading-none" style={{background:"#c8d8c0",color:"#1e3a28"}}>
+              <Check className="h-2.5 w-2.5" strokeWidth={3} />
+              {yesCount}
+            </span>
+          )}
+          {maybeCount > 0 && (
+            <span className="inline-flex items-center gap-0.5 rounded px-1 py-0.5 font-display text-[10px] font-bold leading-none" style={{background:"#e8d8a8",color:"#5a4010"}}>
+              <Minus className="h-2.5 w-2.5" strokeWidth={3} />
+              {maybeCount}
+            </span>
+          )}
+          {noCount > 0 && (
+            <span className="inline-flex items-center gap-0.5 rounded px-1 py-0.5 font-display text-[10px] font-bold leading-none" style={{background:"#e8c0c0",color:"#5a1820"}}>
+              <X className="h-2.5 w-2.5" strokeWidth={3} />
+              {noCount}
+            </span>
+          )}
+        </div>
+      )}
     </button>
 
       {/* Session crest medallion. Owners can click it to remove the session
@@ -328,7 +333,9 @@ export function DayCell({
 
       {day.inCurrentMonth &&
         cursor &&
-        (hasConflict || hasAlign || (isViableWeekday && tooltipRows.length > 0)) && (
+        (hasConflict ||
+          hasAlign ||
+          (showTallies && isViableWeekday && tooltipRows.length > 0)) && (
           <div
             className={cn(
               "pointer-events-none fixed z-50 w-max rounded-md border border-hairline bg-surface text-left shadow-parchment",
@@ -387,7 +394,7 @@ export function DayCell({
               </div>
             )}
 
-            {isViableWeekday && tooltipRows.length > 0 && (
+            {showTallies && isViableWeekday && tooltipRows.length > 0 && (
               <div
                 className={cn(
                   (hasConflict || hasAlign) && "border-t border-hairline pt-1",

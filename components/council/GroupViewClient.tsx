@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Eye, EyeOff, Settings2 } from "lucide-react";
+import { Settings2 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AppHeader } from "@/components/council/AppHeader";
 import { CalendarPanel } from "@/components/council/CalendarPanel";
@@ -67,6 +67,25 @@ export function GroupViewClient(props: Props) {
   // Cross-campaign overlays. Conflicts (other campaigns' play-dates) are
   // always shown; the align overlay (my yes/maybe elsewhere) is toggled.
   const [showAlign, setShowAlign] = useState(false);
+
+  // "Everyone's votes" — when off, day tiles show only the user's own vote
+  // (via the background tint), hiding the group tallies. Remembered per device.
+  const [showTallies, setShowTallies] = useState(true);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (window.localStorage.getItem("cod:showTallies") === "0") {
+      setShowTallies(false);
+    }
+  }, []);
+  function toggleTallies() {
+    setShowTallies((v) => {
+      const next = !v;
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem("cod:showTallies", next ? "1" : "0");
+      }
+      return next;
+    });
+  }
   const conflictByDate = useMemo(() => {
     const m = new Map<string, string[]>();
     for (const s of props.crossSessions) {
@@ -529,13 +548,13 @@ export function GroupViewClient(props: Props) {
                 yesCount={leadingYesCount}
                 memberCount={members.length}
               />
-              {alignCampaignCount > 0 && (
-                <AlignToggle
-                  active={showAlign}
-                  count={alignCampaignCount}
-                  onToggle={() => setShowAlign((v) => !v)}
-                />
-              )}
+              <ViewOptions
+                showTallies={showTallies}
+                onToggleTallies={toggleTallies}
+                showAlign={showAlign}
+                onToggleAlign={() => setShowAlign((v) => !v)}
+                alignCount={alignCampaignCount}
+              />
             </div>
           </aside>
 
@@ -559,6 +578,7 @@ export function GroupViewClient(props: Props) {
                 conflictByDate={conflictByDate}
                 alignByDate={alignByDate}
                 showAlign={showAlign}
+                showTallies={showTallies}
                 belowHeader={
                   <QuickFillBar
                     viableWeekdays={group.viableWeekdays}
@@ -573,13 +593,13 @@ export function GroupViewClient(props: Props) {
                   yesCount={leadingYesCount}
                   memberCount={members.length}
                 />
-                {alignCampaignCount > 0 && (
-                  <AlignToggle
-                    active={showAlign}
-                    count={alignCampaignCount}
-                    onToggle={() => setShowAlign((v) => !v)}
-                  />
-                )}
+                <ViewOptions
+                  showTallies={showTallies}
+                  onToggleTallies={toggleTallies}
+                  showAlign={showAlign}
+                  onToggleAlign={() => setShowAlign((v) => !v)}
+                  alignCount={alignCampaignCount}
+                />
               </div>
             </div>
             {/* Desktop calendar (no QuickFillBar inside) */}
@@ -600,6 +620,7 @@ export function GroupViewClient(props: Props) {
                 conflictByDate={conflictByDate}
                 alignByDate={alignByDate}
                 showAlign={showAlign}
+                showTallies={showTallies}
               />
             </div>
           </div>
@@ -670,13 +691,14 @@ function currentUserMatches(myId: string, creatorId: string) {
   return myId === creatorId;
 }
 
-function AlignToggle({
+/** A labelled on/off switch, styled to match across the app's view options. */
+function ViewSwitch({
+  label,
   active,
-  count,
   onToggle,
 }: {
+  label: string;
   active: boolean;
-  count: number;
   onToggle: () => void;
 }) {
   return (
@@ -684,31 +706,62 @@ function AlignToggle({
       type="button"
       onClick={onToggle}
       aria-pressed={active}
-      className={cn(
-        "flex w-full items-start gap-2 rounded-lg border px-3 py-2 text-left shadow-sm transition",
-        active
-          ? "border-dm-gold/70 bg-dm-gold/10 text-ink"
-          : "border-hairline bg-surface text-ink-soft hover:bg-parchment hover:text-ink",
-      )}
+      className="flex w-full items-center justify-between gap-3 py-2 text-left"
     >
-      {active ? (
-        <Eye className="mt-0.5 h-4 w-4 shrink-0 text-dm-gold" />
-      ) : (
-        <EyeOff className="mt-0.5 h-4 w-4 shrink-0" />
-      )}
-      <span className="flex-1">
-        <span className="block font-body text-xs font-bold">
-          Align with other campaigns
-        </span>
-        <span className="block text-[10px] leading-snug text-ink-soft">
-          {active
-            ? "Showing your votes from elsewhere"
-            : `Overlay your votes from ${count} other ${
-                count === 1 ? "campaign" : "campaigns"
-              }`}
-        </span>
+      <span className="min-w-0 font-body text-xs font-bold text-ink">
+        {label}
+      </span>
+      <span
+        className={cn(
+          "relative h-5 w-9 shrink-0 rounded-full transition-colors",
+          active ? "bg-gold" : "bg-hairline",
+        )}
+      >
+        <span
+          className={cn(
+            "absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all",
+            active ? "left-[18px]" : "left-0.5",
+          )}
+        />
       </span>
     </button>
+  );
+}
+
+/** The "View" group: tally visibility + (when relevant) the align overlay. */
+function ViewOptions({
+  showTallies,
+  onToggleTallies,
+  showAlign,
+  onToggleAlign,
+  alignCount,
+}: {
+  showTallies: boolean;
+  onToggleTallies: () => void;
+  showAlign: boolean;
+  onToggleAlign: () => void;
+  alignCount: number;
+}) {
+  return (
+    <div className="rounded-lg border border-hairline bg-surface px-3 py-1.5 shadow-sm">
+      <p className="mb-0.5 mt-1 text-[10px] font-display uppercase tracking-wider text-ink-soft">
+        View
+      </p>
+      <ViewSwitch
+        label="Everyone's votes"
+        active={showTallies}
+        onToggle={onToggleTallies}
+      />
+      {alignCount > 0 && (
+        <div className="border-t border-hairline/60">
+          <ViewSwitch
+            label="Show votes from other campaigns"
+            active={showAlign}
+            onToggle={onToggleAlign}
+          />
+        </div>
+      )}
+    </div>
   );
 }
 
