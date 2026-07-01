@@ -1,4 +1,4 @@
-// Hand-written type subset for the Council of Days schema.
+// Hand-written type subset for the Calendar schema.
 // Matches supabase/migrations/0001_init.sql.
 // Could later be replaced by `supabase gen types typescript --linked`.
 
