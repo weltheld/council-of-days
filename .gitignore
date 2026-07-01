@@ -14,3 +14,4 @@ next-env.d.ts
 
 # Stray generated scratch images
 images/
+.env*
