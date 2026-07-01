@@ -14,6 +14,7 @@ export type ProfileRow = {
   character_name: string;
   display_name: string;
   avatar_url: string | null;
+  last_campaign_id: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -88,6 +89,7 @@ export type Database = {
           character_name?: string;
           display_name?: string;
           avatar_url?: string | null;
+          last_campaign_id?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -97,6 +99,7 @@ export type Database = {
           character_name?: string;
           display_name?: string;
           avatar_url?: string | null;
+          last_campaign_id?: string | null;
           created_at?: string;
           updated_at?: string;
         };
